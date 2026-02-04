@@ -21,7 +21,7 @@ const CashCollectionHistory = () => {
   const fetchUserById = async (token) => {
     try {
       const decoded = jwtDecode(token);
-      const userId = decoded._id;
+      const userId = decoded.id;
 
       const response = await axios.get(`${BASE_URL}/api/users/${userId}`, {
         headers: {
@@ -142,9 +142,11 @@ const CashCollectionHistory = () => {
             }}
             className="w-full p-2 text-sm rounded-lg bg-[#1E1D1D] border border-gray-600 text-white"
           >
-            <option className='text-sm' value="">Region</option>
+            <option className="text-sm" value="">
+              Region
+            </option>
             {regions.map((region) => (
-              <option key={region._id} value={region._id}>
+              <option key={region.id} value={region.id}>
                 {region.name}
               </option>
             ))}
@@ -163,7 +165,7 @@ const CashCollectionHistory = () => {
             {branches
               .filter((branch) => branch.regionId === selectedRegion)
               .map((branch) => (
-                <option key={branch._id} value={branch._id}>
+                <option key={branch.id} value={branch.id}>
                   {branch.name}
                 </option>
               ))}
@@ -175,11 +177,17 @@ const CashCollectionHistory = () => {
             onChange={(e) => setSelectedCentre(e.target.value)}
             className="w-full p-2 text-sm rounded-lg bg-[#1E1D1D] border border-gray-600 text-white"
           >
-            <option className='border-b text-sm border-white' value="">Centre</option>
+            <option className="border-b text-sm border-white" value="">
+              Centre
+            </option>
             {centres
               .filter((centre) => centre.branchId === selectedBranch)
               .map((centre) => (
-                <option className='border-b text-sm border-white' key={centre._id} value={centre._id}>
+                <option
+                  className="border-b text-sm border-white"
+                  key={centre.id}
+                  value={centre.id}
+                >
                   {centre.name}
                 </option>
               ))}
@@ -204,29 +212,39 @@ const CashCollectionHistory = () => {
         {/* Data */}
         <div className="flex-1">
           {loading ? (
-            <div className="text-center p-4 text-gray-400">
-              Loading...
-            </div>
+            <div className="text-center p-4 text-gray-400">Loading...</div>
           ) : summaryData.length > 0 ? (
             summaryData.map((item, index) => (
               <div
-                key={item._id || index}
+                key={item.id || index}
                 className="grid bg-[#1E1D1D] grid-cols-3 text-center text-xs"
               >
                 <div className="border p-2 flex text-xs justify-center items-center w-full border-[#6F5FE7]">
-                  {item.amountReceived || item.amountReceived || item.amountReceived || 'N/A'}
+                  {item.amountReceived ||
+                    item.amountReceived ||
+                    item.amountReceived ||
+                    "N/A"}
                 </div>
                 <div className="border p-2 flex text-xs justify-center items-center w-full border-[#6F5FE7]">
-                  {item.postedBy || item.userId?.name || item.receivedBy || 'N/A'}
+                  {item.postedBy ||
+                    item.userId?.name ||
+                    item.receivedBy ||
+                    "N/A"}
                 </div>
                 <div className="border p-2 flex text-xs justify-center items-center w-full border-[#6F5FE7]">
-                  {formatDate(item.collectionDate || item.amountReceivingDate || item.createdAt)}
+                  {formatDate(
+                    item.collectionDate ||
+                      item.amountReceivingDate ||
+                      item.createdAt
+                  )}
                 </div>
               </div>
             ))
           ) : (
             <div className="text-center p-4 text-gray-400">
-              {selectedCentre ? "No Data Available for this Centre" : "Please select a centre to view data"}
+              {selectedCentre
+                ? "No Data Available for this Centre"
+                : "Please select a centre to view data"}
             </div>
           )}
         </div>

@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { HiCollection } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
-import { FaWallet } from 'react-icons/fa';
+import { FaWallet } from "react-icons/fa";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const CashCollectionScreen = () => {
@@ -17,11 +17,11 @@ const CashCollectionScreen = () => {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [loadingCentres, setLoadingCentres] = useState(false);
   const [centreIssues, setCentreIssues] = useState([]);
-  // Deduplicate centres by combined key _id + centreId to avoid duplicate keys in React
+  // Deduplicate centres by combined key id + centreId to avoid duplicate keys in React
   const uniqueCentres = useMemo(() => {
     const seen = new Set();
     return centres.filter((centre) => {
-      const key = `${centre._id}_${centre.centreId}`;
+      const key = `${centre.id}_${centre.centreId}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -49,29 +49,27 @@ const CashCollectionScreen = () => {
   }, [uniqueCentres]);
 
   const fetchAllCentres = async (token) => {
-  try {
-    setLoadingCentres(true);
+    try {
+      setLoadingCentres(true);
 
-    const response = await axios.get(`${BASE_URL}/api/centres/`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      }
-    });
+      const response = await axios.get(`${BASE_URL}/api/centres/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-    const centreList = response.data || []; // This returns the array of all centres
-    setCentres(centreList);
-
-  } catch (error) {
-    console.error(
-      "Error fetching centres:",
-      error.response?.data || error.message
-    );
-  } finally {
-    setLoadingCentres(false);
-  }
-};
-
+      const centreList = response.data || []; // This returns the array of all centres
+      setCentres(centreList);
+    } catch (error) {
+      console.error(
+        "Error fetching centres:",
+        error.response?.data || error.message
+      );
+    } finally {
+      setLoadingCentres(false);
+    }
+  };
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -94,7 +92,7 @@ const CashCollectionScreen = () => {
         await fetchAllCentres(storedToken);
 
         // Fetch issue counts (wait for centres)
-        const issuesData = await fetchCentreIssues(storedToken, decoded._id);
+        const issuesData = await fetchCentreIssues(storedToken, decoded.id);
         setCentreIssues(issuesData);
       }
     };
@@ -103,25 +101,28 @@ const CashCollectionScreen = () => {
   const fetchCentreIssues = async (token, userId) => {
     try {
       const response = await axios.get(
-        `${BASE_URL}/api/customer/users/${userId}/assigned-centre-issues`,
+        `${BASE_URL}/api/customers/users/${userId}/assigned-centre-issues`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-          }
+          },
         }
       );
       // console.log("Centre Issues Data:", response.data.centres);
       return response.data.centres;
     } catch (error) {
-      console.error("Error fetching centre issues:", error.response?.data || error.message);
+      console.error(
+        "Error fetching centre issues:",
+        error.response?.data || error.message
+      );
       return [];
     }
   };
   const issueCountMap = useMemo(() => {
     const map = {};
-    centreIssues.forEach(item => {
-      map[item.centre._id] = item.issues.length;
+    centreIssues.forEach((item) => {
+      map[item.centre.id] = item.issues.length;
     });
     return map;
   }, [centreIssues]);
@@ -156,8 +157,12 @@ const CashCollectionScreen = () => {
   // Filter centres based on search, region, and branch filters
   const filteredCentres = useMemo(() => {
     const searchLower = (searchTerm || "").toLowerCase();
-    const selectedRegionNormalized = (selectedRegion || "").toLowerCase().trim();
-    const selectedBranchNormalized = (selectedBranch || "").toLowerCase().trim();
+    const selectedRegionNormalized = (selectedRegion || "")
+      .toLowerCase()
+      .trim();
+    const selectedBranchNormalized = (selectedBranch || "")
+      .toLowerCase()
+      .trim();
 
     return uniqueCentres.filter((centre) => {
       const centreName = centre.name || "";
@@ -338,12 +343,12 @@ const CashCollectionScreen = () => {
           </div>
         ) : filteredCentres.length ? (
           filteredCentres.map((centre) => {
-            const uniqueKey = `${centre._id}_${centre.centreId}`;
+            const uniqueKey = `${centre.id}_${centre.centreId}`;
             return (
               <div className="mb-4" key={uniqueKey}>
                 <div
                   className="p-6 bg-[#1E1D1D] rounded-lg flex flex-row gap-4 items-center mb-1 cursor-pointer"
-                  onClick={() => navigate(`/center-details/${centre._id}`)}
+                  onClick={() => navigate(`/center-details/${centre.id}`)}
                 >
                   {/* Issues Badge - Left */}
                   <div className="flex flex-col justify-center items-center h-full">
@@ -352,7 +357,7 @@ const CashCollectionScreen = () => {
                         Issues
                       </span>
                       <span className="text-sm text-white bg-[#5C49C1] rounded-full px-2 py-1 min-w-[28px] text-center">
-                        {issueCountMap[centre._id] || 0}
+                        {issueCountMap[centre.id] || 0}
                       </span>
                     </div>
                   </div>
@@ -379,7 +384,6 @@ const CashCollectionScreen = () => {
                   </div>
                 </div>
               </div>
-
             );
           })
         ) : (

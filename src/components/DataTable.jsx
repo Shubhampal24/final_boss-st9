@@ -15,9 +15,12 @@ const DataTable = ({ columns, data }) => {
         </thead>
         <tbody>
           {data.map((row, rowIndex) => (
-            <tr key={row._id || rowIndex} className="border border-gray-600">
+            <tr key={row.id || rowIndex} className="border border-gray-600">
               {columns.map((col, colIndex) => (
-                <td key={colIndex} className="p-4 text-center border border-white">
+                <td
+                  key={colIndex}
+                  className="p-4 text-center border border-white"
+                >
                   {col.render ? col.render(row, rowIndex) : row[col.key]}
                 </td>
               ))}

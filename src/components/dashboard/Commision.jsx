@@ -22,7 +22,7 @@ const Commission = () => {
     const fetchSalesReport = async () => {
       try {
         const response = await axios.get(
-          `${BASE_URL}/api/customer/centre-sales-report`,
+          `${BASE_URL}/api/customers/centre-sales-report`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -30,24 +30,16 @@ const Commission = () => {
           }
         );
 
-        const formattedData = (response.data.data || []).map((item, index) => {
-          const formatValue = (value) => {
-            if (value === null || value === undefined) return "0";
-            return typeof value === "number"
-              ? value.toLocaleString()
-              : value.toString();
-          };
+        const formattedData = (response.data.data || []).map((item, index) => ({
+  srNo: index + 1,
+  centreName: item.centreName || "N/A",
+  centreCode: item.centreCode || "N/A",
+  payCriteria: item.payCriteria || "N/A",
+  totalCashCommission: Number(item.totalCashCommission || 0),
+  totalOnlineCommission: Number(item.totalOnlineCommission || 0),
+  totalCommission: Number(item.totalCommission || 0),
+}));
 
-          return {
-            srNo: index + 1,
-            centreName: item.centreName || "N/A",
-            centreCode: item.centreCode || "N/A",
-            payCriteria: item.payCriteria || "N/A",
-            totalCashCommission: formatValue(item.totalCashCommission),
-            totalOnlineCommission: formatValue(item.totalOnlineCommission),
-            totalCommission: formatValue(item.totalCommission),
-          };
-        });
 
         setData(formattedData);
         setFilteredData(formattedData);
@@ -65,10 +57,12 @@ const Commission = () => {
   useEffect(() => {
     const lowercasedSearch = search.toLowerCase();
     const filtered = data.filter((item) =>
-      Object.values(item).some((value) =>
-        value.toString().toLowerCase().includes(lowercasedSearch)
-      )
-    );
+  [item.centreName, item.centreCode, item.payCriteria]
+    .join(" ")
+    .toLowerCase()
+    .includes(lowercasedSearch)
+);
+
     setFilteredData(filtered);
   }, [search, data]);
 
@@ -98,7 +92,16 @@ const Commission = () => {
       />
 
       <div className="overflow-auto max-h-[600px]">
-        <DataTable columns={columns} data={filteredData} />
+        <DataTable
+  columns={columns}
+  data={filteredData.map((row) => ({
+    ...row,
+    totalCashCommission: row.totalCashCommission.toLocaleString(),
+    totalOnlineCommission: row.totalOnlineCommission.toLocaleString(),
+    totalCommission: row.totalCommission.toLocaleString(),
+  }))}
+/>
+
       </div>
     </div>
   );

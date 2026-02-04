@@ -13,7 +13,14 @@ import {
 } from "chart.js";
 
 // Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const RegionGraph = () => {
   const navigate = useNavigate();
@@ -45,7 +52,7 @@ const RegionGraph = () => {
           r.name.toLowerCase().includes("mumbai")
         );
         if (mumbaiRegion) {
-          setRegionId(mumbaiRegion._id);
+          setRegionId(mumbaiRegion.id);
         }
       })
       .catch((error) => console.error("Error fetching regions:", error));
@@ -67,10 +74,13 @@ const RegionGraph = () => {
       if (selectedWeek) params.week = selectedWeek;
 
       try {
-        const salesRes = await axios.get(`${BASE_URL}/api/regions/monthly-sales`, {
-          params,
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const salesRes = await axios.get(
+          `${BASE_URL}/api/regions/monthly-sales`,
+          {
+            params,
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         setSalesData(salesRes.data || []);
       } catch (error) {
@@ -204,7 +214,7 @@ const RegionGraph = () => {
         >
           <option value="">Select Region</option>
           {regions.map((region) => (
-            <option key={region._id} value={region._id}>
+            <option key={region.id} value={region.id}>
               {region.name}
             </option>
           ))}
@@ -220,13 +230,14 @@ const RegionGraph = () => {
             setSelectedWeek(null);
           }}
         >
-          {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(
-            (year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            )
-          )}
+          {Array.from(
+            { length: 5 },
+            (_, i) => new Date().getFullYear() - i
+          ).map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
         </select>
 
         {selectedYear && (
@@ -243,9 +254,12 @@ const RegionGraph = () => {
             <option value="">Select Month</option>
             {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
               <option key={month} value={month}>
-                {new Date(selectedYear, month - 1, 1).toLocaleString("default", {
-                  month: "long",
-                })}
+                {new Date(selectedYear, month - 1, 1).toLocaleString(
+                  "default",
+                  {
+                    month: "long",
+                  }
+                )}
               </option>
             ))}
           </select>

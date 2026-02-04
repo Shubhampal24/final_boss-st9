@@ -116,7 +116,7 @@ const ArmUserDetail = () => {
                     </thead>
                     <tbody>
                       {cashData.map((entry) => (
-                        <tr key={entry._id}>
+                        <tr key={entry.id}>
                           <td className="border px-4 py-2">
                             {entry.submittedBy?.name || "-"}
                           </td>
@@ -157,7 +157,7 @@ const ArmUserDetail = () => {
                     </thead>
                     <tbody>
                       {cashData.map((entry) => (
-                        <tr key={entry._id}>
+                        <tr key={entry.id}>
                           <td className="border px-4 py-2">
                             {entry.centreId?.centreId || "-"}
                           </td>

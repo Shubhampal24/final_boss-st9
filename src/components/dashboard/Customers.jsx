@@ -24,12 +24,12 @@ const Customers = () => {
     {
       label: "Center Name",
       key: "centreId.name",
-      render: (row) => row.centreId?.centreId || "N/A",
+      render: (row) => row.centreId || "N/A",
     },
     {
       label: "Area Name",
       key: "centreId.name",
-      render: (row) => row.branchId?.name || "N/A",
+      render: (row) => row.branchName || "N/A",
     },
     {
       label: "Customer Name",
@@ -42,16 +42,20 @@ const Customers = () => {
     },
     {
       label: "Service",
-      key: "service._id",
-      render: (row) => row.service?.name || "N/A",
+      key: "serviceName",
+      render: (row) => row.serviceName || "N/A",
+
     },
     {
       label: "Duration",
       key: "duration",
       render: (row) => (
         <>
-          {row.duration} mins.<br />
-          {row.inTime ? new Date(row.inTime).toLocaleTimeString() : "N/A"} - {" "}
+          {row.duration} mins.
+          <br />
+          {row.inTime
+            ? new Date(row.inTime).toLocaleTimeString()
+            : "N/A"} -{" "}
           {row.outTime ? new Date(row.outTime).toLocaleTimeString() : "N/A"}
         </>
       ),
@@ -59,24 +63,27 @@ const Customers = () => {
     {
       label: "Total Cash",
       key: "paymentCash1",
-      render: (row) => ((row.paymentCash1 || 0) + (row.paymentCash2 || 0)) || "N/A",
+      render: (row) =>
+        (row.paymentCash1 || 0) + (row.paymentCash2 || 0) || "N/A",
     },
     {
       label: "Total Online",
       key: "paymentOnline1",
-      render: (row) => ((row.paymentOnline1 || 0) + (row.paymentOnline2 || 0)) || "N/A",
+      render: (row) =>
+        (row.paymentOnline1 || 0) + (row.paymentOnline2 || 0) || "N/A",
     },
     {
       label: "Total Commission",
       key: "Total Commission",
-      render: (row) => ((row.onlineCommission || 0) + (row.cashCommission || 0)) || "N/A",
+      render: (row) =>
+        (row.onlineCommission || 0) + (row.cashCommission || 0) || "N/A",
     },
     {
       label: "Actions",
       key: "actions",
       render: (row) => (
         <button
-          onClick={() => handleDeleteCustomer(row._id)}
+          onClick={() => handleDeleteCustomer(row.id)}
           className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded"
         >
           Delete
@@ -86,54 +93,38 @@ const Customers = () => {
   ];
 
   const fetchCustomersForDate = async (date) => {
-    setLoading(true);
-    const token = localStorage.getItem("token");
+  setLoading(true);
+  const token = localStorage.getItem("token");
 
-    try {
-      // Format date to YYYY-MM-DD
-      const formattedDate = date ? 
-        date.toISOString().split('T')[0] : 
-        new Date().toISOString().split('T')[0];
+  try {
+    const formattedDate = date
+      ? date.toLocaleDateString("en-CA")
+      : new Date().toLocaleDateString("en-CA");
 
-      const params = { date: formattedDate };
+    const response = await axios.get(`${BASE_URL}/api/customers/fast`, {
+      params: { date: formattedDate },
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      const response = await axios.get(`${BASE_URL}/api/customer/fast-list`, {
-        params,
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    const customersArray = response.data.customers || [];
+    setCustomers(customersArray);
+    setFilteredCustomers(customersArray);
+  } catch (error) {
+    console.error("Error fetching customers:", error);
+    setCustomers([]);
+    setFilteredCustomers([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
-      // Access the customers array from the response
-      const customersArray = response.data.customers || [];
-
-      const today = new Date().toDateString();
-
-      const sortedData = [...customersArray].sort((a, b) => {
-        const aIsToday = a.inTime && new Date(a.inTime).toDateString() === today;
-        const bIsToday = b.inTime && new Date(b.inTime).toDateString() === today;
-
-        if (aIsToday && !bIsToday) return -1;
-        if (!aIsToday && bIsToday) return 1;
-        return 0;
-      });
-
-      setCustomers(sortedData);
-      setFilteredCustomers(sortedData);
-    } catch (error) {
-      console.error("Error fetching customers:", error);
-      // Initialize empty arrays to prevent further errors
-      setCustomers([]);
-      setFilteredCustomers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     // Fetch customers for the selected date
     fetchCustomersForDate(selectedDate);
 
     // SSE Setup
-    const customerEventSource = new EventSource(`${BASE_URL}/api/customer/sse`);
+    const customerEventSource = new EventSource(`${BASE_URL}/api/customers/events`);
 
     customerEventSource.onopen = () => {
       console.log("SSE connection established");
@@ -142,16 +133,10 @@ const Customers = () => {
     customerEventSource.onmessage = (event) => {
       try {
         const eventData = JSON.parse(event.data);
-        const newCustomer = eventData.customer;
+        if (eventData.customerId) {
+  fetchCustomersForDate(selectedDate);
+}
 
-        if (newCustomer) {
-          setCustomers((prevCustomers) => {
-            if (!prevCustomers.some((c) => c._id === newCustomer._id)) {
-              return [...prevCustomers, newCustomer];
-            }
-            return prevCustomers;
-          });
-        }
       } catch (error) {
         console.error("Error parsing customer SSE data:", error);
       }
@@ -171,23 +156,38 @@ const Customers = () => {
     let filtered = [...customers];
 
     if (selectedRegion) {
-      filtered = filtered.filter((c) => c.regionId?.name === selectedRegion);
+      filtered = filtered.filter(
+  (c) => c.regionName === selectedRegion
+);
+
     }
 
     if (selectedBranch) {
-      filtered = filtered.filter((c) => c.centreId?.branch_name === selectedBranch);
+      filtered = filtered.filter((c) => c.branchName === selectedBranch);
     }
 
-    if (selectedBranchCode) {
-      filtered = filtered.filter((c) => c.centreId?.centre_id == selectedBranchCode);
-    }
+    // if (selectedBranchCode) {
+    //   filtered = filtered.filter(
+    //     (c) => c.centreId?.centreid == selectedBranchCode
+    //   );
+    // }
 
-    if (selectedCenter && selectedCenter !== "") {
-      filtered = filtered.filter((c) => c.centreId?.centreId === selectedCenter);
-    }
+    if (selectedCenter) {
+  filtered = filtered.filter(
+    (c) => c.centreId === selectedCenter
+  );
+}
+
+
 
     setFilteredCustomers(filtered);
-  }, [selectedRegion, selectedBranch, selectedBranchCode, selectedCenter, customers]);
+  }, [
+    selectedRegion,
+    selectedBranch,
+    selectedBranchCode,
+    selectedCenter,
+    customers,
+  ]);
 
   // Handle date change
   const handleDateChange = (date) => {
@@ -198,16 +198,17 @@ const Customers = () => {
   const handleDeleteCustomer = async (customerId) => {
     const token = localStorage.getItem("token");
 
-    if (!window.confirm("Are you sure you want to delete this customer?")) return;
+    if (!window.confirm("Are you sure you want to delete this customer?"))
+      return;
 
     try {
-      await axios.delete(`${BASE_URL}/api/customer/${customerId}`, {
+      await axios.delete(`${BASE_URL}/api/customers/${customerId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       // Remove the customer from state
-      setCustomers((prev) => prev.filter((c) => c._id !== customerId));
-      setFilteredCustomers((prev) => prev.filter((c) => c._id !== customerId));
+      setCustomers((prev) => prev.filter((c) => c.id !== customerId));
+      setFilteredCustomers((prev) => prev.filter((c) => c.id !== customerId));
     } catch (error) {
       console.error("Error deleting customer:", error);
       alert("Failed to delete customer.");
@@ -216,19 +217,19 @@ const Customers = () => {
 
   // Get unique centers
   const centerOptions = [
-    { id: "all", value: "", label: "All Centers" },
-    ...[...new Set(customers
-      .filter(c => c.centreId?.centreId) // Filter out null/undefined values
-      .map(c => c.centreId?.centreId))]
-      .map(center => ({
-        id: center,
-        value: center,
-        label: center
-      }))
-  ];
+  { id: "all", value: "", label: "All Centers" },
+  ...[...new Set(customers.map((c) => c.centreId))]
+    .filter(Boolean)
+    .map((center) => ({
+      id: center,
+      value: center,
+      label: center,
+    })),
+];
+
 
   // Filter centers based on search query
-  const filteredCenterOptions = centerOptions.filter(center => 
+  const filteredCenterOptions = centerOptions.filter((center) =>
     center.label.toLowerCase().includes(centerSearchQuery.toLowerCase())
   );
 
@@ -267,14 +268,18 @@ const Customers = () => {
                       key={center.id}
                       value={center.value}
                       className={({ active }) =>
-                        `cursor-pointer px-4 py-2 ${active ? "bg-gray-700 text-white" : "text-gray-300"}`
+                        `cursor-pointer px-4 py-2 ${
+                          active ? "bg-gray-700 text-white" : "text-gray-300"
+                        }`
                       }
                     >
                       {center.label}
                     </Listbox.Option>
                   ))
                 ) : (
-                  <div className="px-4 py-2 text-gray-400">No centers found</div>
+                  <div className="px-4 py-2 text-gray-400">
+                    No centers found
+                  </div>
                 )}
               </Listbox.Options>
             </div>
@@ -297,11 +302,15 @@ const Customers = () => {
 
       {/* Data count display */}
       <div className="mb-4 text-gray-300">
-        Showing {filteredCustomers.length} customer{filteredCustomers.length !== 1 ? 's' : ''}
+        Showing {filteredCustomers.length} customer
+        {filteredCustomers.length !== 1 ? "s" : ""}
       </div>
 
       {/* Table with scrollbar */}
-      <div className="relative z-0 overflow-x-auto" style={{ maxHeight: "calc(100vh - 250px)" }}>
+      <div
+        className="relative z-0 overflow-x-auto"
+        style={{ maxHeight: "calc(100vh - 250px)" }}
+      >
         <div className="overflow-y-auto">
           <DataTable columns={columns} data={filteredCustomers || []} />
         </div>

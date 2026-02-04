@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import DataTable from "../DataTable";
 import { Listbox } from "@headlessui/react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import { format } from "date-fns";
+// import DatePicker from "react-datepicker";
+// import "react-datepicker/dist/react-datepicker.css";
+// import { format } from "date-fns";
 import Loader from "../Loader";
 
 const TotalCollection = () => {
@@ -13,7 +13,7 @@ const TotalCollection = () => {
   const [loading, setLoading] = useState(true);
   const [selectedBranchCode, setSelectedBranchCode] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDate, setSelectedDate] = useState(null);
+  // const [selectedDate, setSelectedDate] = useState(() => new Date());
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -23,13 +23,33 @@ const TotalCollection = () => {
     }
 
     const fetchSalesReport = async () => {
+      // const formattedDate = format(selectedDate, "yyyy-MM-dd");
+
+
       try {
-        const response = await axios.get(`${BASE_URL}/api/customer/centre-sales-report`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setData(response.data.data);
+        const response = await axios.get(
+  `${BASE_URL}/api/customers/centre-sales-report`,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
+        console.log(
+  "📊 DAILY SALES REPORT RAW RESPONSE 👉",
+  response.data
+);
+
+setData(response.data?.data || []);
+if (Array.isArray(response.data?.data)) {
+  response.data.data.forEach((row) => {
+    console.log(
+      `🏢 ${row.centreCode} | Cash=${row.totalCash} | Online=${row.totalOnline} | Sales=${row.totalSales}`
+    );
+  });
+}
+
       } catch (error) {
         console.error("Error fetching sales report:", error);
       } finally {
@@ -38,7 +58,8 @@ const TotalCollection = () => {
     };
 
     fetchSalesReport();
-  }, []);
+  }, [BASE_URL]);
+
 
   const columns = [
     { label: "Sr No.", key: "srNo" },
@@ -49,29 +70,35 @@ const TotalCollection = () => {
     { label: "Total Sales", key: "totalSales" },
   ];
 
-  // Filtered centers based on the search term, memoized
-  const filteredCenters = useMemo(() => {
-    return [...new Set(data.map((item) => item.centreId || ""))].filter((centreId) => {
-      const centreData = data.find((item) => item.centreId === centreId);
-      return (
-        centreData &&
-        centreData.centreCode.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    });
-  }, [data, searchTerm]);
 
-  const filteredCentersWithNames = useMemo(() => {
-    return filteredCenters.map((centreId) => {
-      const centreData = data.find((item) => item.centreId === centreId);
-      return centreData ? centreData.centreCode : "Unknown Center";
-    });
-  }, [filteredCenters, data]);
+
+  // Filtered centers based on the search term, memoized
+const centerOptions = useMemo(() => {
+  const map = new Map();
+  data.forEach((item) => {
+    if (!map.has(item.centreId)) {
+      map.set(item.centreId, {
+        id: item.centreId,
+        code: item.centreCode,
+      });
+    }
+  });
+  return Array.from(map.values());
+}, [data]);
+
+
+const filteredData = useMemo(() => {
+  return selectedBranchCode
+    ? data.filter((item) => item.centreId === selectedBranchCode)
+    : data;
+}, [data, selectedBranchCode]);
+
 
   // Filter data based on selected branch code (centreId)
-  const filteredData = data.filter((item) => {
-    if (!selectedBranchCode) return true;
-    return item.centreId === selectedBranchCode;
-  });
+  // const filteredData = data.filter((item) => {
+  //   if (!selectedBranchCode) return true;
+  //   return item.centreId === selectedBranchCode;
+  // });
 
   if (loading) return <Loader />;
 
@@ -80,6 +107,18 @@ const TotalCollection = () => {
       <p className="text-2xl font-bold mb-5">Total Collection</p>
       <>
         <div className="flex gap-4 mb-4 flex-wrap">
+
+            {/* <div className="relative z-30">
+  <h3 className="mb-2">Date Filter</h3>
+  <DatePicker
+    selected={selectedDate}
+    onChange={(date) => date && setSelectedDate(date)}
+    dateFormat="yyyy-MM-dd"
+    className="py-2 px-4 bg-[#0D0D11] text-white border border-gray-600 rounded-lg"
+  />
+</div> */}
+
+
           
           <div className="relative z-30">
             <h3 className="mb-2">Center Filter</h3>
@@ -109,7 +148,7 @@ const TotalCollection = () => {
                   All Centers
                 </Listbox.Option>
 
-                {filteredCentersWithNames.map((centreName, index) => (
+                {/* {filteredCentersWithNames.map((centreName, index) => (
                   <Listbox.Option
                     key={filteredCenters[index]}
                     value={filteredCenters[index]}
@@ -119,21 +158,41 @@ const TotalCollection = () => {
                   >
                     {centreName}
                   </Listbox.Option>
-                ))}
+                ))} */}
+                {centerOptions
+  .filter((c) =>
+    c.code.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+  .map((center) => (
+    <Listbox.Option
+      key={center.id}
+      value={center.id}
+      className={({ active }) =>
+        `cursor-pointer px-4 py-2 ${
+          active ? "bg-gray-700 text-white" : "text-gray-300"
+        }`
+      }
+    >
+      {center.code}
+    </Listbox.Option>
+  ))}
+
               </Listbox.Options>
             </Listbox>
           </div>
         </div>
         <div className="overflow-auto max-w-full">
+          {console.log("📋 TABLE DATA AFTER FILTER 👉", filteredData)}
           <DataTable
             columns={columns}
             data={filteredData.map((item, index) => ({
               srNo: index + 1,
               centreName: item.centreCode,
               payCriteria: item.payCriteria,
-              totalCash: item.totalCash.toLocaleString(),
-              totalOnline: item.totalOnline.toLocaleString(),
-              totalSales: item.totalSales.toLocaleString(),
+totalCash: Number(item.totalCash || 0).toLocaleString(),
+totalOnline: Number(item.totalOnline || 0).toLocaleString(),
+totalSales: Number(item.totalSales || 0).toLocaleString(),
+
             }))}
           />
         </div>

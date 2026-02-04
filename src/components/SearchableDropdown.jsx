@@ -18,9 +18,7 @@ const SearchableDropdown = ({
   const [centreDropdownOpen, setCentreDropdownOpen] = useState(false);
 
   const regions = [
-    ...new Set(
-      tableData.map((item) => item.regionId?.name).filter(Boolean)
-    ),
+    ...new Set(tableData.map((item) => item.regionId?.name).filter(Boolean)),
   ];
 
   const branches = [
@@ -31,7 +29,7 @@ const SearchableDropdown = ({
 
   const centres = [
     ...new Set(
-      tableData.map((item) => item.centreId?.centre_id).filter(Boolean)
+      tableData.map((item) => item.centreId?.centreid).filter(Boolean)
     ),
   ];
 
@@ -43,46 +41,42 @@ const SearchableDropdown = ({
 
   // Filtered Branches - Show all if query is empty or selectedRegion is not set
   const filteredBranches = queryBranch
-    ? branches.filter(
-        (branch) =>
-          tableData.some(
-            (item) =>
-              item.centreId?.branch_name === branch &&
-              item.regionId?.name === selectedRegion &&
-              item.centreId?.branch_name
-                .toLowerCase()
-                .includes(queryBranch.toLowerCase())
-          )
+    ? branches.filter((branch) =>
+        tableData.some(
+          (item) =>
+            item.centreId?.branch_name === branch &&
+            item.regionId?.name === selectedRegion &&
+            item.centreId?.branch_name
+              .toLowerCase()
+              .includes(queryBranch.toLowerCase())
+        )
       )
-    : branches.filter(
-        (branch) =>
-          tableData.some(
-            (item) =>
-              item.centreId?.branch_name === branch &&
-              item.regionId?.name === selectedRegion
-          )
+    : branches.filter((branch) =>
+        tableData.some(
+          (item) =>
+            item.centreId?.branch_name === branch &&
+            item.regionId?.name === selectedRegion
+        )
       );
 
   // Filtered Centres - Show all if query is empty or selectedBranch is not set
   const filteredCentres = queryCentre
-    ? centres.filter(
-        (centre) =>
-          tableData.some(
-            (item) =>
-              item.centreId?.centre_id === centre &&
-              item.centreId?.branch_name === selectedBranch &&
-              item.centreId?.centre_id
-                .toLowerCase()
-                .includes(queryCentre.toLowerCase())
-          )
+    ? centres.filter((centre) =>
+        tableData.some(
+          (item) =>
+            item.centreId?.centreid === centre &&
+            item.centreId?.branch_name === selectedBranch &&
+            item.centreId?.centreid
+              .toLowerCase()
+              .includes(queryCentre.toLowerCase())
+        )
       )
-    : centres.filter(
-        (centre) =>
-          tableData.some(
-            (item) =>
-              item.centreId?.centre_id === centre &&
-              item.centreId?.branch_name === selectedBranch
-          )
+    : centres.filter((centre) =>
+        tableData.some(
+          (item) =>
+            item.centreId?.centreid === centre &&
+            item.centreId?.branch_name === selectedBranch
+        )
       );
 
   useEffect(() => {
@@ -99,7 +93,10 @@ const SearchableDropdown = ({
   return (
     <div className="w-auto px-4  flex gap-4 h-auto relative">
       {/* Region Dropdown */}
-      <Combobox value={selectedRegion} onChange={(region) => setSelectedRegion(region)}>
+      <Combobox
+        value={selectedRegion}
+        onChange={(region) => setSelectedRegion(region)}
+      >
         <div className="relative">
           <Combobox.Input
             className="w-52 px-4 text-white bg-[#1F1F24] border border-zinc-200 rounded-xl h-12 focus:outline-none"
@@ -126,7 +123,10 @@ const SearchableDropdown = ({
 
       {/* Branch Dropdown */}
       {selectedRegion && (
-        <Combobox value={selectedBranch} onChange={(branch) => setSelectedBranch(branch)}>
+        <Combobox
+          value={selectedBranch}
+          onChange={(branch) => setSelectedBranch(branch)}
+        >
           <div className="relative">
             <Combobox.Input
               className="w-52 px-4 text-white bg-[#1F1F24] border border-zinc-200 rounded-xl h-12 focus:outline-none"
@@ -162,7 +162,7 @@ const SearchableDropdown = ({
               onClick={() => {
                 setCentreDropdownOpen(true); // Ensure dropdown opens
                 setQueryCentre(""); // Reset query so all options show
-              }}             
+              }}
               onChange={(event) => setQueryCentre(event.target.value)}
             />
             {centreDropdownOpen && (

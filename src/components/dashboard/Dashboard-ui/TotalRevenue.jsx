@@ -31,7 +31,7 @@ function TotalRevenue() {
                 const endDate = dayjs(selectedMonth + "-01").endOf('month').format('YYYY-MM-DD');
 
                 const response = await axios.get(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/customer/monthly-collection-expenses`,
+                    `${import.meta.env.VITE_API_BASE_URL}/api/customers/monthly-collection-expenses`,
                     {
                         params: { startDate, endDate },
                     }

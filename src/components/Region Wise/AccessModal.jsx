@@ -3,7 +3,7 @@ import { Listbox } from "@headlessui/react";
 import axios from "axios";
 import { RxCross2 } from "react-icons/rx";
 
-import toast from "react-hot-toast";  // Import toast
+import toast from "react-hot-toast"; // Import toast
 const AccessModal = ({ isOpen, onClose, staff }) => {
   const [regions, setRegions] = useState([]);
   const [branches, setBranches] = useState([]);
@@ -18,8 +18,8 @@ const AccessModal = ({ isOpen, onClose, staff }) => {
   useEffect(() => {
     if (isOpen) {
       fetchRegions();
-      if (staff?._id) {
-        fetchUserAccess(staff._id);
+      if (staff?.id) {
+        fetchUserAccess(staff.id);
       }
     }
   }, [isOpen, staff]);
@@ -29,9 +29,12 @@ const AccessModal = ({ isOpen, onClose, staff }) => {
     if (!token) return;
 
     try {
-      const response = await axios.get(`${BASE_URL}/api/regions-branches-centres/all`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${BASE_URL}/api/regions-branches-centres/all`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setRegions(response.data.regions || []);
       setBranches(response.data.branches || []);
       setCenters(response.data.centres || []);
@@ -56,7 +59,7 @@ const AccessModal = ({ isOpen, onClose, staff }) => {
 
   const handleUpdateAccess = async () => {
     try {
-      await axios.put(`${BASE_URL}/api/users/${staff._id}`, {
+      await axios.put(`${BASE_URL}/api/users/${staff.id}`, {
         regionIds: selectedRegions,
         branchIds: selectedBranches,
         centreIds: selectedCenters,
@@ -69,35 +72,38 @@ const AccessModal = ({ isOpen, onClose, staff }) => {
     }
   };
 
-
   const handleDelete = async (id, type) => {
-
     if (type === "region") {
-      setSelectedRegions(prevRegions => {
-        const updatedRegions = prevRegions.filter(regionId => String(regionId) !== String(id));
+      setSelectedRegions((prevRegions) => {
+        const updatedRegions = prevRegions.filter(
+          (regionId) => String(regionId) !== String(id)
+        );
         updateUserData(updatedRegions, selectedBranches, selectedCenters);
         return updatedRegions;
       });
     } else if (type === "branch") {
-      setSelectedBranches(prevBranches => {
-        const updatedBranches = prevBranches.filter(branchId => String(branchId) !== String(id));
+      setSelectedBranches((prevBranches) => {
+        const updatedBranches = prevBranches.filter(
+          (branchId) => String(branchId) !== String(id)
+        );
         updateUserData(selectedRegions, updatedBranches, selectedCenters);
         return updatedBranches;
       });
     } else if (type === "center") {
-      setSelectedCenters(prevCenters => {
-        const updatedCenters = prevCenters.filter(centerId => String(centerId) !== String(id));
+      setSelectedCenters((prevCenters) => {
+        const updatedCenters = prevCenters.filter(
+          (centerId) => String(centerId) !== String(id)
+        );
         updateUserData(selectedRegions, selectedBranches, updatedCenters);
         return updatedCenters;
       });
     }
   };
 
-
   // Separate function to update user data
   const updateUserData = async (regions, branches, centers) => {
     try {
-      await axios.put(`${BASE_URL}/api/users/${staff._id}`, {
+      await axios.put(`${BASE_URL}/api/users/${staff.id}`, {
         regionIds: regions,
         branchIds: branches,
         centreIds: centers,
@@ -109,7 +115,6 @@ const AccessModal = ({ isOpen, onClose, staff }) => {
       toast.error("Failed to remove item.");
     }
   };
-
 
   const staffDetails = {
     Name: staff?.name,
@@ -123,13 +128,13 @@ const AccessModal = ({ isOpen, onClose, staff }) => {
     return (
       <div className="mb-4">
         <label className="block text-white font-semibold">{label}</label>
-  
+
         {/* Display Selected Items Outside Listbox.Button */}
         <div className="flex flex-wrap gap-2 mt-2">
           {value.map((item, index) => {
-            const id = typeof item === "object" ? item._id : item;
-            const found = options.find((o) => String(o._id) === String(id));
-  
+            const id = typeof item === "object" ? item.id : item;
+            const found = options.find((o) => String(o.id) === String(id));
+
             return found ? (
               <span
                 key={`${id}-${index}`}
@@ -140,29 +145,29 @@ const AccessModal = ({ isOpen, onClose, staff }) => {
                   onClick={(e) => {
                     e.stopPropagation(); // Prevent event from affecting Listbox
                     setValue((prev) =>
-                      prev.filter((v) => String(v._id || v) !== String(id))
+                      prev.filter((v) => String(v.id || v) !== String(id))
                     );
                   }}
                   className="text-red-500 cursor-pointer hover:text-red-700 ml-2"
-                > 
-                  <RxCross2 size={24}/>
+                >
+                  <RxCross2 size={24} />
                 </button>
               </span>
             ) : null;
           })}
         </div>
-  
+
         {/* Listbox for Selection */}
         <Listbox value={value} onChange={setValue} multiple>
           <Listbox.Button className="py-2 min-w-52 px-4 bg-[#0D0D11] text-left text-white border border-gray-600 rounded-lg">
             Select {label}
           </Listbox.Button>
-  
+
           <Listbox.Options className="absolute cursor-pointer min-w-80 z-10 bg-[#0D0D11] mt-1 border border-gray-700 rounded-lg shadow-lg">
             {options.map((option) => (
               <Listbox.Option
-                key={option._id}
-                value={option._id}
+                key={option.id}
+                value={option.id}
                 className="cursor-pointer px-4 py-2 text-gray-300 hover:bg-gray-700"
               >
                 {option.name}
@@ -173,8 +178,6 @@ const AccessModal = ({ isOpen, onClose, staff }) => {
       </div>
     );
   };
-  
-
 
   return (
     isOpen && (
@@ -188,7 +191,9 @@ const AccessModal = ({ isOpen, onClose, staff }) => {
                   <tbody>
                     {Object.entries(staffDetails).map(([label, value]) => (
                       <tr key={label} className="border">
-                        <td className="px-4 py-2 font-semibold border bg-[#6F5FE7]">{label}</td>
+                        <td className="px-4 py-2 font-semibold border bg-[#6F5FE7]">
+                          {label}
+                        </td>
                         <td className="px-4 py-2">{value || "N/A"}</td>
                       </tr>
                     ))}
@@ -202,12 +207,37 @@ const AccessModal = ({ isOpen, onClose, staff }) => {
 
           <div className="w-1/2 h-full p-4">
             <h3 className="py-2 text-lg font-bold">Select Access</h3>
-            {renderMultiSelect("Regions", selectedRegions, setSelectedRegions, regions)}
-            {renderMultiSelect("Branches", selectedBranches, setSelectedBranches, branches)}
-            {renderMultiSelect("Centers", selectedCenters, setSelectedCenters, centers)}
+            {renderMultiSelect(
+              "Regions",
+              selectedRegions,
+              setSelectedRegions,
+              regions
+            )}
+            {renderMultiSelect(
+              "Branches",
+              selectedBranches,
+              setSelectedBranches,
+              branches
+            )}
+            {renderMultiSelect(
+              "Centers",
+              selectedCenters,
+              setSelectedCenters,
+              centers
+            )}
             <div className="flex justify-end gap-4">
-              <button className="bg-zinc-700 cursor-pointer text-white px-4 py-2 rounded" onClick={onClose}>Cancel</button>
-              <button className="bg-[#6F5FE7] cursor-pointer text-white px-4 py-2 rounded" onClick={handleUpdateAccess}>Save Changes</button>
+              <button
+                className="bg-zinc-700 cursor-pointer text-white px-4 py-2 rounded"
+                onClick={onClose}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-[#6F5FE7] cursor-pointer text-white px-4 py-2 rounded"
+                onClick={handleUpdateAccess}
+              >
+                Save Changes
+              </button>
             </div>
           </div>
         </div>

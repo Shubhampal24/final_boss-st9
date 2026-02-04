@@ -400,13 +400,11 @@ const CashSubmissions = () => {
   ];
 
   const selectedSubmittedByObj =
-    submittedByOptions.find(
-      (person) => person.value === selectedSubmittedBy
-    ) || submittedByOptions[0];
+    submittedByOptions.find((person) => person.value === selectedSubmittedBy) ||
+    submittedByOptions[0];
   const selectedSubmittedToObj =
-    submittedToOptions.find(
-      (person) => person.value === selectedSubmittedTo
-    ) || submittedToOptions[0];
+    submittedToOptions.find((person) => person.value === selectedSubmittedTo) ||
+    submittedToOptions[0];
 
   const handleSubmittedByChange = (selected) => {
     setSelectedSubmittedBy(selected.value);
@@ -439,7 +437,7 @@ const CashSubmissions = () => {
 
     const token = localStorage.getItem("token");
     const currentUser = JSON.parse(localStorage.getItem("user"));
-    const currentUserId = currentUser?._id;
+    const currentUserId = currentUser?.id;
 
     if (!token || !currentUserId) {
       alert("Token or user ID not found.");
@@ -452,7 +450,7 @@ const CashSubmissions = () => {
       isVerificationUpdate.current = true;
 
       const response = await axios.patch(
-        `${BASE_URL}/api/cashRecieve/${pendingVerification._id}/verify`,
+        `${BASE_URL}/api/cashRecieve/${pendingVerification.id}/verify`,
         {
           isVerified: !pendingVerification.isVerified,
           verifiedBy: currentUserId,
@@ -469,7 +467,7 @@ const CashSubmissions = () => {
       // Update submissions and preserve sort order
       setSubmissions((prev) => {
         const updated = prev.map((item) =>
-          item._id === pendingVerification._id ? updatedSubmission : item
+          item.id === pendingVerification.id ? updatedSubmission : item
         );
         return [...updated].sort((a, b) => {
           const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -573,9 +571,7 @@ const CashSubmissions = () => {
   ];
 
   const visibleColumns =
-    windowWidth < 768
-      ? columns.filter((col) => !col.hideOnMobile)
-      : columns;
+    windowWidth < 768 ? columns.filter((col) => !col.hideOnMobile) : columns;
 
   if (loading) return <Loader />;
 

@@ -51,7 +51,6 @@ const Staff = () => {
       <NavbarMain />
       <NavbarRouting />
 
-
       <div className="overflow-x-auto mt-6">
         <table className="w-full text-left border border-gray-600">
           <thead>
@@ -64,16 +63,20 @@ const Staff = () => {
           </thead>
           <tbody>
             {filteredStaff
-              .filter(staff => staff.role === "Vision")  // Filter staff by role "Vision"
+              .filter((staff) => staff.role === "Vision") // Filter staff by role "Vision"
               .map((staff, index) => (
-                <tr key={staff._id?.$oid || index} className="border text-center border-gray-600">
+                <tr
+                  key={staff.id?.$oid || index}
+                  className="border text-center border-gray-600"
+                >
                   <td className="py-3 px-4 border">{index + 1}</td>
-                  <td className="py-3 px-4 border">{staff._id || "N/A"}</td>
+                  <td className="py-3 px-4 border">{staff.id || "N/A"}</td>
                   <td className="py-3 px-4 border">{staff.name || "N/A"}</td>
                   <td className="py-3  px-4 border text-center">
                     <span
                       onClick={() => handleAccessClick(staff)}
-                      className="text-lg text-blue-500 text-center flex justify-center items-center cursor-pointer">
+                      className="text-lg text-blue-500 text-center flex justify-center items-center cursor-pointer"
+                    >
                       <GoPasskeyFill />
                     </span>
                   </td>
@@ -82,7 +85,11 @@ const Staff = () => {
           </tbody>
         </table>
       </div>
-      <AccessModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} staff={selectedStaff} />
+      <AccessModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        staff={selectedStaff}
+      />
     </div>
   );
 };

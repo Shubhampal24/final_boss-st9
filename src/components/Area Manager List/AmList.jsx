@@ -11,7 +11,7 @@ const ArmUserTable = () => {
   const [error, setError] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   // cashData will hold either the ARM object or the OT array
-  const [cashData, setCashData] = useState(null); 
+  const [cashData, setCashData] = useState(null);
   const [expenseData, setExpenseData] = useState(null);
   const [showPanel, setShowPanel] = useState(false);
   const [showExpensePanel, setShowExpensePanel] = useState(false);
@@ -35,16 +35,17 @@ const ArmUserTable = () => {
       }
 
       try {
-        const response = await axios.get(`${BASE_URL}/api/users/arm`, {
+        const response = await axios.get(`${BASE_URL}/api/auth/arm-users`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
         const formattedData = response.data.map((user) => ({
-          ...user,
-          regions: user.regionIds?.map((r) => r.name).join(", ") || "N/A",
-        }));
+  ...user,
+  regions: user.regions?.map((r) => r.regionName).join(", ") || "N/A",
+}));
+
 
         setUserData(formattedData);
         console.log("Fetched ARM Users:", formattedData);
@@ -64,7 +65,7 @@ const ArmUserTable = () => {
       const token = localStorage.getItem("token");
 
       // 🔍 get user info from already loaded list
-      const user = userData.find((u) => u._id === userId);
+      const user = userData.find((u) => u.id === userId);
       setSelectedUserName(user?.name || "");
 
       let apiUrl;
@@ -72,10 +73,10 @@ const ArmUserTable = () => {
       // 👇 Role based routing logic
       if (user.role === "OT") {
         // API returns an Array of objects with amountPaid, dateSubmitted, submittedBy: { name }
-        apiUrl = `${BASE_URL}/api/cashRecieve/submittedTo/${userId}`;
+        apiUrl = `${BASE_URL}/api/submitted-cash/submittedTo/${userId}`;
       } else {
         // API returns an Object with totalCollectedAmount and cashCollectionHistory
-        apiUrl = `${BASE_URL}/api/cash-collection/user/${userId}`;
+        apiUrl = `${BASE_URL}/api/cash-collections/user/${userId}`;
       }
 
       const response = await axios.get(apiUrl, {
@@ -95,17 +96,19 @@ const ArmUserTable = () => {
     }
   };
 
-
   const handleViewExpenseClick = async (userId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/areaExpense/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        `${BASE_URL}/api/area-expenses/areaManager/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      const user = userData.find((u) => u._id === userId);
+      const user = userData.find((u) => u.id === userId);
       setSelectedUserName(user?.name || "");
       setExpenseData(response.data);
       setSelectedUser(userId);
@@ -117,13 +120,15 @@ const ArmUserTable = () => {
   };
 
   const handleVerifyExpense = async (expenseId) => {
-    setActionLoading(prev => ({ ...prev, [expenseId]: true }));
+    setActionLoading((prev) => ({ ...prev, [expenseId]: true }));
 
     try {
       const token = localStorage.getItem("token");
 
-      await axios.patch(`${BASE_URL}/api/areaExpense/${expenseId}/approve`,
-        { verified: true },
+      await axios.patch(
+  `${BASE_URL}/api/area-expenses/${expenseId}/approve`,
+  { verified: true, approvedByHeadOffice: true },
+
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -133,17 +138,19 @@ const ArmUserTable = () => {
 
       // Refresh expense data
       if (selectedUser) {
-        const response = await axios.get(`${BASE_URL}/api/areaExpense/${selectedUser}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.get(
+          `${BASE_URL}/api/area-expenses/${selectedUser}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         setExpenseData(response.data);
-
       }
 
       // Refresh user data to update cash in hand
-      const userResponse = await axios.get(`${BASE_URL}/api/users/arm`, {
+      const userResponse = await axios.get(`${BASE_URL}/api/auth/arm-users`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -151,7 +158,7 @@ const ArmUserTable = () => {
 
       const formattedData = userResponse.data.map((user) => ({
         ...user,
-        regions: user.regionIds?.map((r) => r.name).join(", ") || "N/A",
+        regions: user.regions?.map((r) => r.regionName).join(", ") || "N/A",
       }));
 
       setUserData(formattedData);
@@ -161,65 +168,59 @@ const ArmUserTable = () => {
       console.error("Failed to verify expense", err);
       toast.error("Failed to verify expense");
     } finally {
-      setActionLoading(prev => ({ ...prev, [expenseId]: false }));
+      setActionLoading((prev) => ({ ...prev, [expenseId]: false }));
     }
   };
 
   const handleUpdateExpense = async (expenseId, updatedData) => {
-    setActionLoading(prev => ({ ...prev, [expenseId]: true }));
+    setActionLoading((prev) => ({ ...prev, [expenseId]: true }));
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
-        `${BASE_URL}/api/areaExpense/${expenseId}`,
-        updatedData,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      await axios.put(`${BASE_URL}/api/area-expenses/${expenseId}`, updatedData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       toast.success("Expense updated successfully!");
 
       // Reload page after update
       window.location.reload();
-
     } catch (err) {
       console.error("Failed to update expense:", err);
       toast.error("Failed to update expense");
     } finally {
-      setActionLoading(prev => ({ ...prev, [expenseId]: false }));
+      setActionLoading((prev) => ({ ...prev, [expenseId]: false }));
     }
   };
 
   const handleDeleteExpense = async (expenseId) => {
-    if (!window.confirm("Are you sure you want to delete this expense?")) return;
+    if (!window.confirm("Are you sure you want to delete this expense?"))
+      return;
 
-    setActionLoading(prev => ({ ...prev, [expenseId]: true }));
+    setActionLoading((prev) => ({ ...prev, [expenseId]: true }));
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`${BASE_URL}/api/areaExpense/${expenseId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      await axios.delete(`${BASE_URL}/api/area-expenses/${expenseId}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Expense deleted successfully!");
 
       // Reload page after delete
       window.location.reload();
-
     } catch (err) {
       console.error("Failed to delete expense:", err);
       toast.error("Failed to delete expense");
     } finally {
-      setActionLoading(prev => ({ ...prev, [expenseId]: false }));
+      setActionLoading((prev) => ({ ...prev, [expenseId]: false }));
     }
   };
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentEditExpense, setCurrentEditExpense] = useState(null);
   const [editFormData, setEditFormData] = useState({
-    paidTo: '',
-    reason: '',
-    amount: '',
+    paidTo: "",
+    reason: "",
+    amount: "",
     // Add more fields as needed
   });
   const [showSummary, setShowSummary] = useState(false);
-
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
@@ -239,7 +240,7 @@ const ArmUserTable = () => {
       key: "action",
       render: (user) => (
         <button
-          onClick={() => handleViewClick(user._id)}
+          onClick={() => handleViewClick(user.id)}
           className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           View
@@ -251,7 +252,7 @@ const ArmUserTable = () => {
       key: "action",
       render: (user) => (
         <button
-          onClick={() => handleViewExpenseClick(user._id)}
+          onClick={() => handleViewExpenseClick(user.id)}
           className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
         >
           View Expenses
@@ -264,7 +265,7 @@ const ArmUserTable = () => {
   const getUniqueCentreIds = () => {
     if (!cashData?.cashCollectionHistory) return [];
     const centreIds = cashData.cashCollectionHistory
-      .map((entry) => entry.centreId?.centreId)
+      .map((entry) => entry.centres?.[0]?.centreId)
       .filter(Boolean);
     return [...new Set(centreIds)];
   };
@@ -272,7 +273,8 @@ const ArmUserTable = () => {
   const getUniqueRegionNames = () => {
     if (!expenseData) return [];
     const regionNames = expenseData
-      .map((expense) => expense.regionIds?.map(r => r.name))
+  .map((expense) => expense.regions?.map((r) => r.name))
+
       .flat()
       .filter(Boolean);
     return [...new Set(regionNames)];
@@ -280,19 +282,35 @@ const ArmUserTable = () => {
 
   const getStatusBadge = (expense) => {
     if (expense.verified) {
-      return <span className="px-2 py-1 bg-green-600 text-white text-xs rounded">Verified</span>;
+      return (
+        <span className="px-2 py-1 bg-green-600 text-white text-xs rounded">
+          Verified
+        </span>
+      );
     }
     if (expense.approvedByHeadOffice) {
-      return <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded">HO Approved</span>;
+      return (
+        <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded">
+          HO Approved
+        </span>
+      );
     }
     if (expense.approvedByRegionalManager) {
-      return <span className="px-2 py-1 bg-yellow-600 text-white text-xs rounded">RM Approved</span>;
+      return (
+        <span className="px-2 py-1 bg-yellow-600 text-white text-xs rounded">
+          RM Approved
+        </span>
+      );
     }
-    return <span className="px-2 py-1 bg-red-600 text-white text-xs rounded">Pending</span>;
+    return (
+      <span className="px-2 py-1 bg-red-600 text-white text-xs rounded">
+        Pending
+      </span>
+    );
   };
 
   const getVerifyButton = (expense) => {
-    const isLoading = actionLoading[expense._id];
+    const isLoading = actionLoading[expense.id];
 
     // Don't show button if already verified
     if (expense.verified) {
@@ -301,7 +319,7 @@ const ArmUserTable = () => {
 
     return (
       <button
-        onClick={() => handleVerifyExpense(expense._id)}
+        onClick={() => handleVerifyExpense(expense.id)}
         disabled={isLoading}
         className="p-1 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
         title="Verify"
@@ -309,8 +327,18 @@ const ArmUserTable = () => {
         {isLoading ? (
           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
         ) : (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M5 13l4 4L19 7"
+            ></path>
           </svg>
         )}
       </button>
@@ -323,42 +351,46 @@ const ArmUserTable = () => {
     if (!cashData) return [];
 
     // Check if data is the 'OT' array structure
-    const isOTData = Array.isArray(cashData) && cashData.every(item => 'amountPaid' in item);
+    const isOTData =
+      Array.isArray(cashData) && cashData.every((item) => "amountPaid" in item);
 
     if (isOTData) {
       // Process OT data: map to the required column keys
-      return [...cashData].reverse().map(entry => ({
-        _id: entry._id,
-        centreId: { 
+      return [...cashData].reverse().map((entry) => ({
+        id: entry.id,
+        centreId: {
           // Show submittedBy.name in place of Centre Name
-          centreId: "N/A", 
-          name: entry.submittedBy?.name || "N/A",    
-          branchName: "N/A" 
-        }, 
+          centreId: "N/A",
+          name: entry.submittedBy?.name || "N/A",
+          branchName: "N/A",
+        },
         amountReceived: entry.amountPaid,
         amountReceivingDate: entry.dateSubmitted,
       }));
     } else if (cashData.cashCollectionHistory) {
       // Process ARM data: apply existing centre filter
-      return [...cashData.cashCollectionHistory].reverse().filter((entry) =>
-        centreIdFilter
-          ? entry.centreId?.centreId === centreIdFilter
-          : true
-      );
+      return [...cashData.cashCollectionHistory]
+        .reverse()
+        .filter((entry) =>
+  centreIdFilter
+    ? entry.centres?.[0]?.centreId === centreIdFilter
+    : true
+)
+;
     }
     return [];
   };
 
   // Get the data to display in the Cash Collection table
-  const cashTableData = getCashTableData(); 
+  const cashTableData = getCashTableData();
 
   // Calculate total collected amount based on the current data structure
-  const totalCollectedAmount = Array.isArray(cashData) 
+  const totalCollectedAmount = Array.isArray(cashData)
     ? cashData.reduce((sum, entry) => sum + (entry.amountPaid || 0), 0)
     : cashData?.totalCollectedAmount || 0;
 
   // --- End Dynamic Data Helpers ---
-  
+
   const filteredData = [...userData]
     .filter((user) =>
       user.name.toLowerCase().includes(nameFilter.toLowerCase())
@@ -369,12 +401,17 @@ const ArmUserTable = () => {
       return 0;
     });
 
-  const filteredExpenseData = expenseData?.filter((expense) => {
-    if (!expenseRegionFilter) return true;
-    return expense.regionIds?.some(r => r.name === expenseRegionFilter);
-  }) || [];
+  const filteredExpenseData =
+    expenseData?.filter((expense) => {
+      if (!expenseRegionFilter) return true;
+      return expense.regions?.some((r) => r.name === expenseRegionFilter);
 
-  const totalExpenseAmount = filteredExpenseData.reduce((sum, expense) => sum + (expense.amount || 0), 0);
+    }) || [];
+
+  const totalExpenseAmount = filteredExpenseData.reduce(
+    (sum, expense) => sum + (expense.amount || 0),
+    0
+  );
 
   if (loading) return <p className="text-white p-4">Loading...</p>;
   if (error) return <p className="text-red-500 p-4">{error}</p>;
@@ -486,16 +523,16 @@ const ArmUserTable = () => {
                   </thead>
                   <tbody>
                     {cashTableData.map((entry) => (
-                      <tr key={entry._id} className="hover:bg-[#2E2E3A]">
+                      <tr key={entry.id} className="hover:bg-[#2E2E3A]">
                         <td className="px-4 py-2 border border-[#2E2E3A]">
-                          {entry.centreId?.centreId || "N/A"}
+                          {entry.centres?.[0]?.centreId || "N/A"}
                         </td>
                         <td className="px-4 py-2 border border-[#2E2E3A]">
                           {/* This will show submittedBy.name for OT users, and centreId.name for ARM users */}
                           {entry.centreId?.name || "N/A"}
                         </td>
                         <td className="px-4 py-2 border border-[#2E2E3A]">
-                          {entry.centreId?.branchName || "N/A"}
+                          {entry.branches?.[0]?.name || "N/A"}
                         </td>
                         <td className="px-4 py-2 border border-[#2E2E3A]">
                           {entry.amountReceived?.toLocaleString() || 0}
@@ -593,66 +630,67 @@ const ArmUserTable = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {[...filteredExpenseData]
-                      .reverse()
-                      .map((expense) => (
-                        <tr key={expense._id} className="hover:bg-[#2E2E3A]">
-                          <td className="px-4 py-2 border text-center border-[#2E2E3A]">
-                            {expense.paidTo || "N/A"}
-                          </td>
-                          <td className="px-4 py-2 border text-center border-[#2E2E3A] max-w-xs">
-                            <div className="truncate" title={expense.description}>
-                              {expense.reason || "N/A"}
-                            </div>
-                          </td>
-                          <td className="px-4 py-2 border text-center border-[#2E2E3A]">
-                            {expense.amount?.toLocaleString() || 0}
-                          </td>
-                          <td className="px-4 py-2 border text-center border-[#2E2E3A]">
-                            {expense.regionIds?.map(r => r.name).join(", ") || "N/A"}
-                          </td>
-                          <td className="px-4 py-2 border text-center border-[#2E2E3A]">
-                            {expense.branchIds?.map(b => b.name).join(", ") || "N/A"}
-                          </td>
-                          <td className="px-4 py-2 border text-center border-[#2E2E3A]">
-                            {expense.centreIds?.map(c => c.name).join(", ") || "N/A"}
-                          </td>
-                          <td className="px-4 py-2 border text-center  border-[#2E2E3A]">
-                            {formatDate(expense.expenseDate) || "N/A"}
-                          </td>
+                    {[...filteredExpenseData].reverse().map((expense) => (
+                      <tr key={expense.id} className="hover:bg-[#2E2E3A]">
+                        <td className="px-4 py-2 border text-center border-[#2E2E3A]">
+                          {expense.paidTo || "N/A"}
+                        </td>
+                        <td className="px-4 py-2 border text-center border-[#2E2E3A] max-w-xs">
+                          <div className="truncate" title={expense.description}>
+                            {expense.reason || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-4 py-2 border text-center border-[#2E2E3A]">
+                          {expense.amount?.toLocaleString() || 0}
+                        </td>
+                        <td className="px-4 py-2 border text-center border-[#2E2E3A]">
+                          {expense.regions?.map((r) => r.name).join(", ") ||
+                            "N/A"}
+                        </td>
+                        <td className="px-4 py-2 border text-center border-[#2E2E3A]">
+                          {expense.branches?.map((b) => b.name).join(", ") ||
+                            "N/A"}
+                        </td>
+                        <td className="px-4 py-2 border text-center border-[#2E2E3A]">
+                          {expense.centres?.map((c) => c.name).join(", ") ||
+                            "N/A"}
+                        </td>
+                        <td className="px-4 py-2 border text-center  border-[#2E2E3A]">
+                          {formatDate(expense.expenseDate) || "N/A"}
+                        </td>
 
-                          <td className="px-8 py-4 border text-center border-[#2E2E3A]">
-                            {getVerifyButton(expense)}
-                          </td>
-                          <td>
-                            <div className="flex space-x-2 justify-center">
-                              <button
-                                onClick={() => {
-                                  setCurrentEditExpense(expense);
-                                  setEditFormData({
-                                    paidTo: expense.paidTo || '',
-                                    reason: expense.reason || '',
-                                    amount: expense.amount || 0,
-                                    // Add other fields as needed
-                                  });
-                                  setShowEditModal(true);
-                                }}
-                                disabled={actionLoading[expense._id]}
-                                className="px-2 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-white"
-                              >
-                                Update
-                              </button>
-                              <button
-                                onClick={() => handleDeleteExpense(expense._id)}
-                                disabled={actionLoading[expense._id]}
-                                className="px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-white"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                        <td className="px-8 py-4 border text-center border-[#2E2E3A]">
+                          {getVerifyButton(expense)}
+                        </td>
+                        <td>
+                          <div className="flex space-x-2 justify-center">
+                            <button
+                              onClick={() => {
+                                setCurrentEditExpense(expense);
+                                setEditFormData({
+                                  paidTo: expense.paidTo || "",
+                                  reason: expense.reason || "",
+                                  amount: expense.amount || 0,
+                                  // Add other fields as needed
+                                });
+                                setShowEditModal(true);
+                              }}
+                              disabled={actionLoading[expense.id]}
+                              className="px-2 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-white"
+                            >
+                              Update
+                            </button>
+                            <button
+                              onClick={() => handleDeleteExpense(expense.id)}
+                              disabled={actionLoading[expense.id]}
+                              className="px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-white"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -730,7 +768,9 @@ const ArmUserTable = () => {
               </form>
             ) : (
               <div>
-                <h4 className="font-semibold mb-2 text-white">Summary of Changes</h4>
+                <h4 className="font-semibold mb-2 text-white">
+                  Summary of Changes
+                </h4>
                 <p className="text-white mb-1">
                   <strong>Paid To:</strong> {editFormData.paidTo}
                 </p>
@@ -738,7 +778,8 @@ const ArmUserTable = () => {
                   <strong>Reason:</strong> {editFormData.reason}
                 </p>
                 <p className="text-white mb-4">
-                  <strong>Amount:</strong> ₹{editFormData.amount.toLocaleString()}
+                  <strong>Amount:</strong> ₹
+                  {editFormData.amount.toLocaleString()}
                 </p>
 
                 <div className="flex justify-between">
@@ -750,7 +791,7 @@ const ArmUserTable = () => {
                   </button>
                   <button
                     onClick={() => {
-                      handleUpdateExpense(currentEditExpense._id, editFormData);
+                      handleUpdateExpense(currentEditExpense.id, editFormData);
                       setShowEditModal(false);
                       setShowSummary(false);
                     }}

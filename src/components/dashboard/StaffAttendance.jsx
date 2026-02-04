@@ -22,11 +22,14 @@ const StaffAttendance = () => {
       }
 
       try {
-        const response = await axios.get(`${BASE_URL}/api/users/present/today`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.get(
+          `${BASE_URL}/api/users/present/today`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         const today = new Date();
         const year = today.getFullYear();
@@ -39,13 +42,12 @@ const StaffAttendance = () => {
         const formattedData = response.data.presentStaff.map((item, index) => ({
           srNo: index + 1,
           centerId: item.centerId || "N/A",
-          staffId: item._id,
+          staffId: item.id,
           staffName: item.name,
           mobile: item.mobileNumber || "N/A",
-        
+
           status: item.status || "N/A",
         }));
-        
 
         setStaffData(formattedData);
         setFilteredData(formattedData);
@@ -60,7 +62,12 @@ const StaffAttendance = () => {
     getClubStaffUsers();
   }, []);
 
-  const centerOptions = ["All", ...new Set(staffData.map((item) => item.centerId).filter(id => id !== "N/A"))];
+  const centerOptions = [
+    "All",
+    ...new Set(
+      staffData.map((item) => item.centerId).filter((id) => id !== "N/A")
+    ),
+  ];
 
   const handleCenterChange = (selected) => {
     setSelectedCenter(selected);
@@ -86,11 +93,14 @@ const StaffAttendance = () => {
   return (
     <div className="p-5 text-white min-h-screen">
       <p className="text-2xl font-bold mb-5">Staff Attendance</p>
-      <p className="mb-2 text-gray-400">Date: {new Date().toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric"
-      })}</p>
+      <p className="mb-2 text-gray-400">
+        Date:{" "}
+        {new Date().toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        })}
+      </p>
 
       {/* iOS-style Dropdown */}
       <div className="relative mb-4">
@@ -105,7 +115,9 @@ const StaffAttendance = () => {
                 key={center}
                 value={center}
                 className={({ active }) =>
-                  `cursor-pointer px-4 py-2 ${active ? "bg-gray-700 text-white" : "text-gray-300"}`
+                  `cursor-pointer px-4 py-2 ${
+                    active ? "bg-gray-700 text-white" : "text-gray-300"
+                  }`
                 }
               >
                 {center}

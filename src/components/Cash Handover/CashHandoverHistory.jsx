@@ -34,7 +34,7 @@ const CashCollectionHistory = () => {
   const extractUserIdFromToken = (token) => {
     try {
       const decoded = jwtDecode(token);
-      return decoded._id;
+      return decoded.id;
     } catch (error) {
       console.error("Error decoding token:", error);
       return null;
@@ -42,50 +42,46 @@ const CashCollectionHistory = () => {
   };
 
   const fetchCashSubmissions = async () => {
-    if (!userId || !token) return;
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        `${BASE_URL}/api/cashRecieve/submittedBy/${userId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const dataArray = response.data || [];
-      setSummaryData(dataArray);
-      setFilteredData(dataArray);
-    } catch (error) {
-      console.error(
-        "Error fetching cash submissions:",
-        error.response?.data || error.message
-      );
-      setSummaryData([]);
-      setFilteredData([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!userId || !token) return;
+  setLoading(true);
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/api/submittedBy/${userId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    const dataArray = response.data || [];
+    setSummaryData(dataArray);
+    setFilteredData(dataArray);
+  } catch (error) {
+    console.error("Error fetching cash submissions:", error);
+    setSummaryData([]);
+    setFilteredData([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchSubmittedToSubmissions = async () => {
-    if (!userId || !token) return;
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        `${BASE_URL}/api/cashRecieve/submittedTo/${userId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const dataArray = response.data || [];
-      setSubmittedToData(dataArray);
-      setFilteredSubmittedToData(dataArray);
-    } catch (error) {
-      console.error(
-        "Error fetching submissions by submittedTo:",
-        error.response?.data || error.message
-      );
-      setSubmittedToData([]);
-      setFilteredSubmittedToData([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!userId || !token) return;
+  setLoading(true);
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/api/submittedTo/${userId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    const dataArray = response.data || [];
+    setSubmittedToData(dataArray);
+    setFilteredSubmittedToData(dataArray);
+  } catch (error) {
+    console.error("Error fetching submittedTo submissions:", error);
+    setSubmittedToData([]);
+    setFilteredSubmittedToData([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -250,7 +246,8 @@ const CashCollectionHistory = () => {
             </div>
             {summaryData.length > 0 && (
               <div className="text-sm text-gray-400 mt-2">
-                Showing {filteredData.length} of {summaryData.length} transactions
+                Showing {filteredData.length} of {summaryData.length}{" "}
+                transactions
               </div>
             )}
             <div className="flex items-center mt-2 text-[#6F5FE7]">
@@ -289,7 +286,7 @@ const CashCollectionHistory = () => {
             ) : (
               filteredData.map((item, idx) => (
                 <div
-                  key={item._id || idx}
+                  key={item.id || idx}
                   className="grid grid-cols-[1.5fr_2fr_1.5fr_3fr] text-sm border-b border-gray-700 hover:bg-gray-800/50 transition-colors"
                 >
                   <div className="p-3 border-r border-gray-700 text-center text-[#6F5FE7] font-medium">
@@ -380,7 +377,7 @@ const CashCollectionHistory = () => {
             ) : (
               filteredSubmittedToData.map((item, idx) => (
                 <div
-                  key={item._id || idx}
+                  key={item.id || idx}
                   className="grid grid-cols-[1.5fr_2fr_1.5fr_3fr] text-sm border-b border-gray-700 hover:bg-gray-800/50 transition-colors"
                 >
                   <div className="p-3 border-r border-gray-700 text-center text-[#6F5FE7] font-medium">

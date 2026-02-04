@@ -11,7 +11,11 @@ const OnlineCollection = () => {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [customers, setCustomers] = useState([]);
   const [selectedCenter, setSelectedCenter] = useState("All");
-  const [selectedDate, setSelectedDate] = useState(new Date()); // Default to today
+  const [selectedDate, setSelectedDate] = useState(() => {
+  const saved = localStorage.getItem("onlineCollectionDate");
+  return saved ? new Date(saved) : new Date();
+});
+ // Default to today
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(""); // For searching centers
 
@@ -27,6 +31,11 @@ const OnlineCollection = () => {
   ];
 
   useEffect(() => {
+  localStorage.removeItem("onlineCollectionDate");
+}, []);
+
+
+  useEffect(() => {
     const fetchCustomers = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -37,28 +46,32 @@ const OnlineCollection = () => {
 
       try {
         // Format date as required by API (YYYY-MM-DD)
-        const formattedDate = selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+        const formattedDate = selectedDate
+          ? format(selectedDate, "yyyy-MM-dd")
+          : format(new Date(), "yyyy-MM-dd");
 
-        const response = await axios.get(`${BASE_URL}/api/customer/fast-list`, {
+        const response = await axios.get(`${BASE_URL}/api/customers/fast`, {
           params: {
-            date: formattedDate
+            date: formattedDate,
           },
           headers: { Authorization: `Bearer ${token}` },
         });
 
         // Check if response has customers array
         if (response.data && Array.isArray(response.data.customers)) {
-          const formattedCustomers = response.data.customers.map((customer, index) => ({
-            srNo: index + 1,
-            customerId: customer._id,
-            centerName: customer.centreId?.centreId || "N/A",
-            Area: customer.branchId?.name || "N/A",
-            firstAmount: customer.paymentOnline1 || "N/A",
-            secondAmount: customer.paymentOnline2 || "N/A",
-            totalCommission: customer.onlineCommission || "N/A",
-            inTime: formatIndianDate(customer.inTime),
-            rawDate: customer.inTime, // Storing raw date for filtering
-          }));
+          const formattedCustomers = response.data.customers.map(
+            (customer, index) => ({
+              srNo: index + 1,
+              customerId: customer.id,
+              centerName: customer.centreId || "N/A",
+              Area: customer.branchName || "N/A",
+              firstAmount: customer.paymentOnline1 || "0",
+              secondAmount: customer.paymentOnline2 || "0",
+              totalCommission: customer.onlineCommission || "0",
+              inTime: formatIndianDate(customer.inTime),
+              // rawDate: customer.inTime, // Storing raw date for filtering
+            })
+          );
 
           setCustomers(formattedCustomers);
         } else {
@@ -95,7 +108,12 @@ const OnlineCollection = () => {
 
   // Extract unique center names after we have customer data
   const centerOptions = useMemo(() => {
-    return ["All", ...new Set(customers.map((c) => c.centerName).filter(name => name !== "N/A"))];
+    return [
+      "All",
+      ...new Set(
+        customers.map((c) => c.centerName).filter((name) => name !== "N/A")
+      ),
+    ];
   }, [customers]);
 
   // Memoized filtering to optimize performance
@@ -106,16 +124,11 @@ const OnlineCollection = () => {
   }, [searchTerm, centerOptions]);
 
   const filteredCustomers = useMemo(() => {
-    return customers.filter((c) => {
-      const matchesCenter = selectedCenter === "All" || c.centerName === selectedCenter;
+  return customers.filter((c) => {
+    return selectedCenter === "All" || c.centerName === selectedCenter;
+  });
+}, [customers, selectedCenter]);
 
-      // If no date selected or date matches
-      const matchesDate = !selectedDate ||
-        (c.rawDate && new Date(c.rawDate).toDateString() === selectedDate.toDateString());
-
-      return matchesCenter && matchesDate;
-    });
-  }, [customers, selectedCenter, selectedDate]);
 
   if (loading) return <Loader />;
 
@@ -124,15 +137,15 @@ const OnlineCollection = () => {
       <p className="text-2xl font-bold mb-5">Online Collection</p>
 
       <div className="flex gap-4 mb-4 flex-wrap">
-
-        <div className="relative z-20"> {/* Higher z-index to ensure dropdown appears above table */}
+        <div className="relative z-20">
+          {" "}
+          {/* Higher z-index to ensure dropdown appears above table */}
           <h3 className="mb-2">Centre Filter</h3>
           <Listbox value={selectedCenter} onChange={setSelectedCenter}>
             <Listbox.Button className="py-2 min-w-52 px-4 bg-[#0D0D11] text-left text-white border border-gray-600 rounded-lg">
               {selectedCenter}
             </Listbox.Button>
             <Listbox.Options className="absolute max-h-60 overflow-auto min-w-52 z-30 bg-[#0D0D11] mt-1 border border-gray-700 rounded-lg shadow-lg">
-
               <div className="sticky top-0 bg-[#0D0D11] z-40">
                 <input
                   type="text"
@@ -148,7 +161,9 @@ const OnlineCollection = () => {
                   key={center}
                   value={center}
                   className={({ active }) =>
-                    `cursor-pointer px-4 py-2 ${active ? "bg-gray-700 text-white" : "text-gray-300"}`
+                    `cursor-pointer px-4 py-2 ${
+                      active ? "bg-gray-700 text-white" : "text-gray-300"
+                    }`
                   }
                 >
                   {center}
@@ -157,7 +172,9 @@ const OnlineCollection = () => {
             </Listbox.Options>
           </Listbox>
         </div>
-        <div className="z-20"> {/* Higher z-index for date picker too */}
+        <div className="z-20">
+          {" "}
+          {/* Higher z-index for date picker too */}
           <h3 className="mb-2">Date Filter</h3>
           <DatePicker
             selected={selectedDate}

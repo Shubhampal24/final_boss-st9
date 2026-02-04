@@ -13,13 +13,14 @@ const Login = () => {
   const handleLogin = async () => {
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/users/login`,
-        { loginId, pin }
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/login`,
+        { loginId, pin },
+        { withCredentials: true }
       );
 
-      const { token, role, user} = response.data;
+      const { message, token, user} = response.data;
 
-      if (role !== "BSS") {
+      if (user.role !== "BSS") {
         toast.error("Access Denied");
         return;
       }

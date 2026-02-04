@@ -12,7 +12,14 @@ import {
 } from "chart.js";
 
 // Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const BranchGraph = () => {
   const [salesData, setSalesData] = useState([]);
@@ -193,7 +200,7 @@ const BranchGraph = () => {
         >
           <option value="">Select Branch</option>
           {branches.map((branch) => (
-            <option key={branch._id} value={branch._id}>
+            <option key={branch.id} value={branch.id}>
               {branch.name}
             </option>
           ))}
@@ -209,13 +216,14 @@ const BranchGraph = () => {
             setSelectedWeek(null);
           }}
         >
-          {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(
-            (year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            )
-          )}
+          {Array.from(
+            { length: 5 },
+            (_, i) => new Date().getFullYear() - i
+          ).map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
         </select>
 
         <select
