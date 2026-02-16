@@ -26,6 +26,8 @@ import ArmUserTable from "./components/Area Manager List/AmList";
 import ArmUserDetail from "./components/Area Manager List/ArmUserDetail";
 import ExpencesReport from "./components/Expenses/Expences";
 import CenterDetailPage from "./components/dashboard/CenterDetailPage";
+import AddExtraCash from "./components/dashboard/AddExtraCash";
+import ExtraCashHistory from "./components/dashboard/ExtraCashHistory";
 
 function App() {
   const ProtectedRoute = ({ element }) => {
@@ -75,10 +77,12 @@ function App() {
         <Route path="/complaints" element={<ProtectedRoute element={<Complaints />} />} />
         <Route path="/customer-data" element={<ProtectedRoute element={<Customers />} />} />
         <Route path="/expenses-report" element={<ProtectedRoute element={<ExpencesReport />} />} />
-        <Route path="/center-details/:id" element={<CenterDetailPage/>}/>
-        
+        <Route path="/center-details/:id" element={<CenterDetailPage/>}/>    
+        <Route path="/extra-cash" element={<ProtectedRoute element={<AddExtraCash />} />} />
+        <Route path="/external-cash-history" element={<ProtectedRoute element={<ExtraCashHistory />} />} />
       </Routes>
     </Router>
   );
 };
 export default App;
+

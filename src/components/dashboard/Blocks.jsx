@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaArrowRightLong } from "react-icons/fa6";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { ChevronDown } from "lucide-react";
 
 const Blocks = ({ setSelectedSection, selectedTab }) => {
   const [blocksData, setBlocksData] = useState([]);
@@ -300,114 +301,85 @@ const Blocks = ({ setSelectedSection, selectedTab }) => {
     <div className="w-full mt-10 pr-15 font-[Plus] h-auto">
       <div className="flex items-center justify-end mb-6">
         <div className="flex items-center gap-4">
-          {/* Date Mode Selection */}
-          <div className="flex items-center gap-2">
-            <label htmlFor="dateMode" className="text-white text-sm">
-              View By:
-            </label>
-            <select
-              id="dateMode"
-              value={dateMode}
-              onChange={handleDateModeChange}
-              className="px-3 py-2 rounded-lg bg-[#2d2d38] text-white border border-[#FFFFFF] focus:outline-none focus:border-blue-500"
-            >
-              <option value="single">Single Date</option>
-              <option value="month">Month</option>
-              <option value="quarter">Quarterly</option>
-              <option value="custom">Custom Range</option>
-            </select>
-          </div>
+{/* Date Selection Section - Complete UI for all modes */}
+<div className="flex flex-wrap items-center gap-4 bg-[#1F1F24] p-2 rounded-2xl border border-white/5">
+ <div className="relative">
+    <select
+      id="dateMode"
+      value={dateMode}
+      onChange={handleDateModeChange}
+      className="appearance-none pl-4 pr-10 py-2.5 rounded-xl bg-[#2A2A30] text-white text-sm font-medium focus:outline-none transition-all cursor-pointer min-w-[160px]"
+    >
+      <option value="single">Single Date</option>
+      <option value="month">Month View</option>
+      <option value="quarter">Quarterly View</option>
+      <option value="custom">Custom Range</option>
+    </select>
+    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={16} />
+</div>
 
-          {/* Date Selection Inputs */}
-          {dateMode === "single" && (
-            <div className="flex items-center gap-2">
-              <label htmlFor="datePicker" className="text-white text-sm">
-                Select Date:
-              </label>
-              <input
-                id="datePicker"
-                type="date"
-                value={selectedDate}
-                onChange={handleSingleDateChange}
-                className="px-4 py-2 rounded-lg bg-[#2d2d38] text-white border border-[#FFFFFF] focus:outline-none focus:border-blue-500"
-              />
-            </div>
-          )}
 
-          {/* {dateMode === 'range' && (
-                        <div className="flex items-center gap-2">
-                            <label className="text-white text-sm">From:</label>
-                            <input
-                                type="date"
-                                value={startDate}
-                                onChange={handleStartDateChange}
-                                className="px-3 py-2 rounded-lg bg-[#2d2d38] text-white border border-[#FFFFFF] focus:outline-none focus:border-blue-500"
-                            />
-                            <label className="text-white text-sm">To:</label>
-                            <input
-                                type="date"
-                                value={endDate}
-                                min={startDate}
-                                onChange={handleEndDateChange}
-                                className="px-3 py-2 rounded-lg bg-[#2d2d38] text-white border border-[#FFFFFF] focus:outline-none focus:border-blue-500"
-                            />
-                        </div>
-                    )} */}
 
-          {dateMode === "month" && (
-            <div className="flex items-center gap-2">
-              <label htmlFor="monthPicker" className="text-white text-sm">
-                Select Month:
-              </label>
-              <input
-                id="monthPicker"
-                type="month"
-                value={selectedMonth}
-                onChange={handleMonthChange}
-                className="px-4 py-2 rounded-lg bg-[#2d2d38] text-white border border-[#FFFFFF] focus:outline-none focus:border-blue-500"
-              />
-            </div>
-          )}
+  {/* SINGLE DATE MODE */}
+  {dateMode === "single" && (
+    <input
+      id="datePicker"
+      type="date"
+      value={selectedDate}
+      onChange={handleSingleDateChange}
+      className="px-4 py-2.5 rounded-xl bg-[#2A2A30] text-white text-sm border border-transparent focus:border-[#6F5FE7] focus:outline-none transition-all"
+    />
+  )}
 
-          {dateMode === "quarter" && (
-            <div className="flex items-center gap-2">
-              <label htmlFor="quarterPicker" className="text-white text-sm">
-                Select Quarter:
-              </label>
-              <select
-                id="quarterPicker"
-                value={selectedQuarter}
-                onChange={handleQuarterChange}
-                className="px-4 py-2 rounded-lg bg-[#2d2d38] text-white border border-[#FFFFFF] focus:outline-none focus:border-blue-500"
-              >
-                {generateQuarterOptions().map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+  {/* MONTH MODE */}
+  {dateMode === "month" && (
+    <input
+      id="monthPicker"
+      type="month"
+      value={selectedMonth}
+      onChange={handleMonthChange}
+      className="px-4 py-2.5 rounded-xl bg-[#2A2A30] text-white text-sm border border-transparent focus:border-[#6F5FE7] focus:outline-none"
+    />
+  )}
 
-          {dateMode === "custom" && (
-            <div className="flex items-center gap-2">
-              <label className="text-white text-sm">From:</label>
-              <input
-                type="date"
-                value={customStartDate}
-                onChange={handleCustomStartDateChange}
-                className="px-3 py-2 rounded-lg bg-[#2d2d38] text-white border border-[#FFFFFF] focus:outline-none focus:border-blue-500"
-              />
-              <label className="text-white text-sm">To:</label>
-              <input
-                type="date"
-                value={customEndDate}
-                min={customStartDate}
-                onChange={handleCustomEndDateChange}
-                className="px-3 py-2 rounded-lg bg-[#2d2d38] text-white border border-[#FFFFFF] focus:outline-none focus:border-blue-500"
-              />
-            </div>
-          )}
+  {/* QUARTERLY MODE */}
+  {dateMode === "quarter" && (
+    <div className="px-4 py-2.5 rounded-xl bg-[#2A2A30] text-white text-sm border border-transparent focus:border-[#6F5FE7] focus:outline-none">
+      <select
+        id="quarterPicker"
+        value={selectedQuarter}
+        onChange={handleQuarterChange}
+        className="bg-transparent border-0 focus:outline-none cursor-pointer w-full text-white"
+      >
+        {generateQuarterOptions().map((option) => (
+          <option key={option.value} value={option.value} className="bg-[#1A1A1F]">
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  )}
+
+  {/* CUSTOM RANGE MODE */}
+  {dateMode === "custom" && (
+    <>
+      <input
+        type="date"
+        value={customStartDate}
+        onChange={handleCustomStartDateChange}
+        className="px-4 py-2.5 rounded-xl bg-[#2A2A30] text-white text-sm border border-transparent focus:border-[#6F5FE7] focus:outline-none"
+      />
+      <span className="text-gray-500 font-medium">-</span>
+      <input
+        type="date"
+        value={customEndDate}
+        min={customStartDate}
+        onChange={handleCustomEndDateChange}
+        className="px-4 py-2.5 rounded-xl bg-[#2A2A30] text-white text-sm border border-transparent focus:border-[#6F5FE7] focus:outline-none"
+      />
+    </>
+  )}
+
 
           {/* Cash Collection Button */}
           <button
@@ -418,6 +390,7 @@ const Blocks = ({ setSelectedSection, selectedTab }) => {
           </button>
         </div>
       </div>
+    </div>
 
       <div className="grid grid-cols-4 justify-start items-center gap-6">
         {error && (
@@ -497,18 +470,36 @@ const Blocks = ({ setSelectedSection, selectedTab }) => {
               }
 
               return (
-                <div
+                 <div
                   key={block.id}
                   onClick={() => setSelectedSection(targetSection)}
-                  className="cursor-pointer w-full rounded-4xl border border-[#FFFFFF] h-38 flex items-start p-6 text-white flex-col justify-center bg-[#1F1F24] hover:bg-[#2A2A30] transition-all"
+                  className="group cursor-pointer relative overflow-hidden rounded-2xl border border-white/10 bg-[#1A1A1F] p-6 transition-all duration-300 hover:border-[#6F5FE7] hover:shadow-[0_0_20px_rgba(111,95,231,0.15)]"
                 >
-                  <h3 className="text-2xl mb-6 text-[#91929E]">
+                  {/* Icon - Top Left */}
+                  <div className="w-12 h-12 rounded-xl bg-[#6F5FE7]/10 flex items-center justify-center mb-6">
+                    <div className="text-[#6F5FE7]">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="2" y="5" width="20" height="14" rx="2"/>
+                        <line x1="2" y1="10" x2="22" y2="10"/>
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Arrow - Top Right - Shows on Hover */}
+                  <FaArrowRightLong 
+                    size={20} 
+                    className="absolute top-6 right-6 text-[#6F5FE7] opacity-0 group-hover:opacity-100 transition-opacity duration-300" 
+                  />
+
+                  {/* Value */}
+                  <h3 className="text-2xl font-bold mb-2 text-white">
                     {block.value}
                   </h3>
-                  <div className="w-full justify-between items-center flex">
-                    <h3 className="text-xl font-medium">{displayTitle}</h3>
-                    <FaArrowRightLong size={24} />
-                  </div>
+
+                  {/* Title */}
+                  <p className="text-sm text-gray-400">
+                    {displayTitle}
+                  </p>
                 </div>
               );
             })

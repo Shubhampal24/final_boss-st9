@@ -54,7 +54,7 @@ const MonthlyOverviewGraph = () => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-4 border border-gray-300 shadow-lg rounded-lg">
+        <div className="bg-[#1A1A1F] p-4 border border-gray-800 shadow-lg rounded-xl">
           <p className="font-bold text-gray-800">{label}</p>
           {payload.map((entry, index) => (
             <p
@@ -84,6 +84,12 @@ const MonthlyOverviewGraph = () => {
       }
 
       try {
+          const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Authentication token is missing.");
+        setLoading(false);
+        return;
+      }
         setLoading(true);
         const response = await axios.get(
           `${BASE_URL}/api/customers/revenue?year=${selectedYear}`,
@@ -91,6 +97,9 @@ const MonthlyOverviewGraph = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+        
+        console.log(response);
+        
 
         const monthDataMap = {};
         if (response.data && response.data.monthlyRevenue) {
@@ -119,7 +128,7 @@ const MonthlyOverviewGraph = () => {
       } catch (error) {
         console.error("Error fetching monthly data:", error);
         setMonthlyData(fallbackMonthlyData);
-        setError("Failed to load monthly data.");
+        // setError("Failed to load monthly data.");
         setLoading(false);
       }
     };
@@ -186,58 +195,58 @@ const MonthlyOverviewGraph = () => {
   // console.log("Active View:", activeDataView);
 
   return (
-    <div className="w-full py-10 px-4 sm:px-6 lg:px-32">
+    <div className="w-full min-h-screen bg-[#0D0D11]">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-100 mb-2">
+          <h2 className="text-3xl font-bold text-white mb-3">
             Revenue Overview
           </h2>
-          <p className="text-gray-100 max-w-2xl mx-auto py-5">
+          <p className="text-gray-400 max-w-2xl mx-auto">
             Monthly revenue breakdown for the year, showcasing financial
             performance across different months.
           </p>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-center items-stretch md:items-center space-y-4 md:space-y-0 md:space-x-4 mb-10">
+        <div className="flex justify-center mb-8">
           <YearSelector />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-10 text-center">
-          <div className="bg-[#1F1F24] p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-200 mb-2">
+          <div className="bg-[#1F1F24] p-6 rounded-2xl border border-white/5 hover:border-[#6F5FE7]/50 transition-colors shadow-lg">
+            <h3 className="text-sm text-gray-400 font-medium mb-1">
               Total Annual Revenue
             </h3>
             <p className="text-2xl font-bold text-green-600">
               ₹ {shortenNumber(totalAnnualRevenue)}
             </p>
           </div>
-          <div className="bg-[#1F1F24] p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-200 mb-2">
+          <div className="bg-[#1F1F24] p-6 rounded-2xl border border-white/5 hover:border-[#6F5FE7]/50 transition-colors shadow-lg">
+            <h3 className="text-sm text-gray-400 font-medium mb-1">
               Total Customers
             </h3>
             <p className="text-2xl font-bold text-orange-600">
               {shortenNumber(totalCustomers)}
             </p>
           </div>
-          <div className="bg-[#1F1F24] p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-200 mb-2">
+          <div className="bg-[#1F1F24] p-6 rounded-2xl border border-white/5 hover:border-[#6F5FE7]/50 transition-colors shadow-lg">
+            <h3 className="text-sm text-gray-400 font-medium mb-1">
               Highest Revenue Month
             </h3>
             <p className="text-xl font-bold text-blue-600">
               {highestRevenueMonth.month}
             </p>
           </div>
-          <div className="bg-[#1F1F24] p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-200 mb-2">
+          <div className="bg-[#1F1F24] p-6 rounded-2xl border border-white/5 hover:border-[#6F5FE7]/50 transition-colors shadow-lg">
+            <h3 className="text-sm text-gray-400 font-medium mb-1">
               Lowest Revenue Month
             </h3>
-            <p className="text-xl font-bold text-red-500">
+            <p className="text-2xl font-bold text-white">
               {lowestRevenueMonth.month}
             </p>
           </div>
         </div>
 
-        <div className="bg-[#1F1F24] p-4 sm:p-6 md:p-8 rounded-lg shadow-lg">
+        <div className="bg-[#1A1A1F] border border-gray-800 p-8 rounded-2xl">
           <ResponsiveContainer width="100%" height={400}>
             <BarChart
               data={monthlyData}
@@ -331,7 +340,7 @@ const MonthlyOverviewGraph = () => {
 
           <div className="flex flex-wrap justify-center mt-6 gap-4">
             <button
-              className={`px-4 py-2 text-sm sm:text-base ${
+              className={`px-4 py-2 text-sm sm:text-base bg-gray-800 text-white rounded border border-gray-600 hover:bg-gray-700 ${
                 activeDataView === "totalRevenue"
                   ? "bg-purple-600"
                   : "bg-gray-800"
@@ -346,27 +355,31 @@ const MonthlyOverviewGraph = () => {
                             Cash vs Online
                         </button> */}
             <button
-              className={`px-4 py-2 text-sm sm:text-base ${
-                activeDataView === "customers" ? "bg-purple-600" : "bg-gray-800"
-              } text-white rounded border border-gray-600 hover:bg-gray-700`}
+              className={`px-4 py-2 text-sm sm:text-base bg-gray-800 text-white rounded border border-gray-600 hover:bg-gray-700 ${
+                activeDataView === "customers"
+                  ? "bg-[#6F5FE7] text-white"
+                  : "bg-[#25252B] text-gray-400 hover:bg-[#2A2A30]"
+              }`}
               onClick={() => handleDataViewChange("customers")}
             >
               Customers
             </button>
             <button
-              className={`px-4 py-2 text-sm sm:text-base ${
-                activeDataView === "totalCash" ? "bg-purple-600" : "bg-gray-800"
-              } text-white rounded border border-gray-600 hover:bg-gray-700`}
+              className={`px-4 py-2 text-sm sm:text-base bg-gray-800 text-white rounded border border-gray-600 hover:bg-gray-700${
+                activeDataView === "totalCash"
+                  ? "bg-[#6F5FE7] text-white"
+                  : "bg-[#25252B] text-gray-400 hover:bg-[#2A2A30]"
+              }`}
               onClick={() => handleDataViewChange("totalCash")}
             >
               Total Cash
             </button>
             <button
-              className={`px-4 py-2 text-sm sm:text-base ${
+              className={`px-4 py-2 text-sm sm:text-base bg-gray-800 text-white rounded border border-gray-600 hover:bg-gray-700 ${
                 activeDataView === "totalOnline"
-                  ? "bg-purple-600"
-                  : "bg-gray-800"
-              } text-white rounded border border-gray-600 hover:bg-gray-700`}
+                  ? "bg-[#6F5FE7] text-white"
+                  : "bg-[#25252B] text-gray-400 hover:bg-[#2A2A30]"
+              }`}
               onClick={() => handleDataViewChange("totalOnline")}
             >
               Total Online

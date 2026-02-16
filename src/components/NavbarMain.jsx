@@ -8,7 +8,7 @@ import { FaCaretDown } from "react-icons/fa";
 import v1 from "../assets/Images/v1.png";
 import { jwtDecode } from "jwt-decode";
 import { useLocation } from "react-router-dom";
-import { Wallet } from 'lucide-react';
+import { HandCoins, Wallet } from 'lucide-react';
 
 const NavbarMain = () => {
     const location = useLocation();
@@ -66,6 +66,14 @@ const NavbarMain = () => {
 
                         <Wallet size={24} />
                     </div> */}
+                    <div
+                 
+                        onClick={() => navigate('/extra-cash')}
+                        className="p-3 bg-[#6F5FE7] rounded-2xl hover:bg-[#5a4bc4] transition-all shadow-lg shadow-[#6F5FE7]/20"
+                        title="Add Extra Cash">
+                        <HandCoins size={20} className="md:size-6" />
+                
+                    </div>
 
                     <div
                         onClick={() => navigate('/cash-in-hand')}
