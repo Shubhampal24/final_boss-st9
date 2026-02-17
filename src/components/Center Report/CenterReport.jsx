@@ -87,14 +87,14 @@ const CenterReport = () => {
 
             try {
                 const url = selectedDate
-                    ? `${BASE_URL}/api/customer/centre-sales-report-daily`
-                    : `${BASE_URL}/api/customer/centre-sales-report`;
+                    ? `${BASE_URL}/api/customers/centre-sales-report-daily`
+                    : `${BASE_URL}/api/customers/centre-sales-report`;
 
                 const response = await axios.get(url, {
                     headers: { Authorization: `Bearer ${token}` },
                     params: selectedDate ? { selectedDate } : {},
                 });
-                // console.log("API Response:", response.data);
+                console.log("API Response:", response.data);
                 if (response.status === 200 && response.data) {
                     const apiData = response.data.data || [];
 
