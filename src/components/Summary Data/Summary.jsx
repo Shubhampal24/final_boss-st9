@@ -95,8 +95,9 @@ const DailySummary = () => {
     if (!token) return;
     setLoading(true);
     try {
-      let url = `${BASE_URL}/api/daily-summary`;
+      let url = `${BASE_URL}/api/dailysummary`;
       const params = new URLSearchParams();
+
       if (filterType === "date" && dateFilter) {
         params.append("date", dateFilter);
       } else if (filterType === "month" && monthFilter) {
@@ -381,9 +382,8 @@ const DailySummary = () => {
         totals,
         payCriteria,
       });
-      const fileName = `Centre-Report-${dataArr[0].centreId.centreId}-${
-        filterType === "date" ? dateFilter : monthFilter
-      }.pdf`;
+      const fileName = `Centre-Report-${dataArr[0].centreId.centreId}-${filterType === "date" ? dateFilter : monthFilter
+        }.pdf`;
       doc.save(fileName);
       toast.success("Centre PDF report downloaded!");
     } catch (error) {
@@ -499,15 +499,15 @@ const DailySummary = () => {
           "Rs. " + formatCurrencyForPDF(summary.totalOnline),
           "Rs. " + formatCurrencyForPDF(summary.totalOnlineCommission),
           "Rs. " +
-            formatCurrencyForPDF(
-              (summary.totalOnline || 0) + (summary.totalOnlineCommission || 0)
-            ),
+          formatCurrencyForPDF(
+            (summary.totalOnline || 0) + (summary.totalOnlineCommission || 0)
+          ),
           "Rs. " + formatCurrencyForPDF(summary.totalCashCommission),
           "Rs. " +
-            formatCurrencyForPDF(
-              (summary.totalOnlineCommission || 0) +
-                (summary.totalCashCommission || 0)
-            ),
+          formatCurrencyForPDF(
+            (summary.totalOnlineCommission || 0) +
+            (summary.totalCashCommission || 0)
+          ),
           "Rs. " + formatCurrencyForPDF(summary.totalExpense),
           formatExpenseReasons(summary),
         ];
@@ -620,66 +620,83 @@ const DailySummary = () => {
       <Toaster position="top-center" reverseOrder={false} />
       <NavbarMain />
       <NavbarRouting />
-      <div className="w-full mt-6 h-auto flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <h1 className="text-2xl font-bold">Daily Summary</h1>
-        <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-          <input
-            type="text"
-            placeholder="Search by Centre ID, Name, Branch"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="py-2 px-3 bg-[#1E1E24] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6F5FE7] w-full md:w-64"
-          />
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-semibold">Filter by:</label>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="py-2 px-3 bg-[#1E1E24] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6F5FE7]"
-            >
-              <option value="date">Date</option>
-              <option value="month">Month</option>
-            </select>
-          </div>
-          {filterType === "date" && (
-            <>
-              <label htmlFor="dateFilter" className="text-sm font-semibold">
-                Select Date:
-              </label>
-              <input
-                type="date"
-                id="dateFilter"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-                className="py-2 px-3 bg-[#1E1E24] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6F5FE7]"
-              />
-            </>
-          )}
-          {filterType === "month" && (
-            <>
-              <label htmlFor="monthFilter" className="text-sm font-semibold">
-                Select Month:
-              </label>
-              <input
-                type="month"
-                id="monthFilter"
-                value={monthFilter}
-                onChange={(e) => setMonthFilter(e.target.value)}
-                className="py-2 px-3 bg-[#1E1E24] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6F5FE7]"
-              />
-            </>
-          )}
-          {filteredSummaries.length > 0 && (
-            <button
-              onClick={downloadPDF}
-              className="flex items-center gap-2 py-2 px-4 bg-[#6F5FE7] text-white rounded-lg hover:bg-[#5A4DD0] transition duration-300"
-            >
-              <ArrowDownToLine size={16} />
-              Download All Centers Report
-            </button>
-          )}
+     <div className="w-full mt-6 h-auto flex flex-col md:flex-row md:items-center gap-4">
+  
+  {/* LEFT — Search */}
+  <input
+    type="text"
+    placeholder="Search by Centre ID, Name, Branch"
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    className="w-full md:w-80 py-2.5 px-4 bg-[#1E1E24] text-white rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-[#6F5FE7] transition-all shadow-lg shadow-black/20"
+  />
+
+  {/* RIGHT — Filter + Date/Month + Download */}
+  <div className="ml-auto w-full md:w-auto flex flex-row flex-wrap sm:flex-nowrap items-center gap-3 bg-[#1E1E24]/50 p-1.5 rounded-xl border border-white/5 backdrop-blur-sm">
+    
+    <div className="flex items-center gap-2 px-2">
+      <label className="text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">
+        Filter by
+      </label>
+      <select
+        value={filterType}
+        onChange={(e) => setFilterType(e.target.value)}
+        className="bg-[#2A2A30] text-white text-sm py-1.5 px-3 rounded-lg border border-white/10 focus:outline-none focus:ring-1 focus:ring-[#6F5FE7] cursor-pointer"
+      >
+        <option value="date">Date</option>
+        <option value="month">Month</option>
+      </select>
+    </div>
+    
+    <div className="h-6 w-[1px] bg-white/10 hidden sm:block"></div>
+    
+    {filterType === "date" && (
+      <>
+        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">
+          DATE
+        </label>
+        <input
+          type="date"
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          className="bg-[#2A2A30] text-white text-sm py-1.5 px-3 rounded-lg border border-white/10 focus:outline-none focus:ring-1 focus:ring-[#6F5FE7] cursor-pointer"
+        />
+      </>
+    )}
+
+    {filterType === "month" && (
+      <>
+        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">
+          MONTH
+        </label>
+        <input
+          type="month"
+          value={monthFilter}
+          onChange={(e) => setMonthFilter(e.target.value)}
+          className="py-2 px-3 bg-[#1E1E24] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6F5FE7]"
+        />
+      </>
+    )}
+
+    {filteredSummaries.length > 0 && (
+      <button
+        onClick={downloadPDF}
+        className="flex items-center gap-2 py-2 px-4 bg-[#6F5FE7] text-white rounded-lg hover:bg-[#5A4DD0] transition duration-300"
+      >
+        <ArrowDownToLine size={16} />
+        Download All Centers Report
+      </button>
+    )}
+  </div>
+  
+    <div>
+        <button className="flex items-center gap-2 py-2 px-4 bg-[#6F5FE7] text-white rounded-lg hover:bg-[#5A4DD0] transition duration-300">
+          <ArrowDownToLine size={16} />
+          Download Report
+          </button>
         </div>
-      </div>
+    </div>
+
       {filteredSummaries.length === 0 ? (
         <div className="mt-10 p-6 text-center bg-[#1E1E24] rounded-lg shadow-md text-gray-400">
           <p className="text-xl mb-2">
@@ -729,9 +746,8 @@ const DailySummary = () => {
                         {summary.centreId.name}
                       </td>
                       <td
-                        className={`py-3 px-4 border ${
-                          netRevenue >= 0 ? "text-green-400" : "text-red-400"
-                        }`}
+                        className={`py-3 px-4 border ${netRevenue >= 0 ? "text-green-400" : "text-red-400"
+                          }`}
                       >
                         {formatCurrency(netRevenue)}
                       </td>
@@ -747,7 +763,7 @@ const DailySummary = () => {
                       <td className="py-2 px-3 border">
                         {formatCurrency(
                           (summary.totalOnline || 0) +
-                            (summary.totalOnlineCommission || 0)
+                          (summary.totalOnlineCommission || 0)
                         )}
                       </td>
                       <td className="py-3 px-4 border">
@@ -756,7 +772,7 @@ const DailySummary = () => {
                       <td className="py-2 px-3 border">
                         {formatCurrency(
                           (summary.totalOnlineCommission || 0) +
-                            (summary.totalCashCommission || 0)
+                          (summary.totalCashCommission || 0)
                         )}
                       </td>
                       <td className="py-3 px-4 border">
@@ -788,11 +804,10 @@ const DailySummary = () => {
                     Total
                   </td>
                   <td
-                    className={`py-3 px-4 border ${
-                      totals.totalRevenue >= 0
-                        ? "text-green-400"
-                        : "text-red-400"
-                    }`}
+                    className={`py-3 px-4 border ${totals.totalRevenue >= 0
+                      ? "text-green-400"
+                      : "text-red-400"
+                      }`}
                   >
                     {formatCurrency(totals.totalRevenue)}
                   </td>
@@ -830,9 +845,8 @@ const DailySummary = () => {
                     Net Profit (Revenue - Expenses)
                   </td>
                   <td
-                    className={`py-3 px-4 border ${
-                      netProfit >= 0 ? "text-green-400" : "text-red-400"
-                    }`}
+                    className={`py-3 px-4 border ${netProfit >= 0 ? "text-green-400" : "text-red-400"
+                      }`}
                   >
                     {formatCurrency(netProfit)}
                   </td>
