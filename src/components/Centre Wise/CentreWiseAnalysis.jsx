@@ -29,7 +29,7 @@ const CentreWiseAnalysis = () => {
       }
       try {
         setLoading(true);
-        const response = await axios.get(`${BASE_URL}/api/centres/centre-stats?date=${date}`, {
+        const response = await axios.get(`${BASE_URL}/api/centres/statistics?date=${date}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
