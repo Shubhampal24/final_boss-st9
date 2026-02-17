@@ -270,9 +270,11 @@ const CashSubmissions = () => {
       setError(null);
 
       try {
-        const response = await axios.get(`${BASE_URL}/api/cashRecieve/all`, {
+        const response = await axios.get(`${BASE_URL}/api/submitted-cash/all`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        console.log(response.data);
 
         let submissionsData = [];
 
