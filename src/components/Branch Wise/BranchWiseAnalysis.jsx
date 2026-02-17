@@ -32,7 +32,7 @@ const BranchWiseAnalysis = () => {
         const branchQuery = selectedBranch !== "All" ? `&branchId=${selectedBranch}` : "";
 
         const response = await axios.get(
-          `${BASE_URL}/api/branches/branch-stats?date=${date}${branchQuery}`,
+          `${BASE_URL}/api/branches/statistics/data?date=${date}${branchQuery}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -122,7 +122,7 @@ const BranchWiseAnalysis = () => {
       {/* Show Filters and DataTable only in Table View */}
       {!isGraphView && (
         <>
-          <p className="text-2xl mt-6 font-bold mb-5 px-4 inline-block">Area Wise Data</p>
+          <p className="text-2xl mt-6 font-bold mb-5 px-4 inline-block"></p>
 
           <div className="flex w-full justify-between items-center px-4">
             <div className="w-full flex gap-4">
